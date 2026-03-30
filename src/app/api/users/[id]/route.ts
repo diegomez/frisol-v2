@@ -20,7 +20,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (body.active !== undefined) updateData.active = body.active;
   if (body.tribeId !== undefined) updateData.tribeId = body.tribeId || null;
   if (body.password) {
-    const bcrypt = await import('bcrypt');
+    const bcrypt = await import('bcryptjs');
     updateData.passwordHash = await bcrypt.hash(body.password, 10);
   }
 
