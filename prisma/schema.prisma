@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Tribe {
+  id        String    @id @default(uuid())
+  name      String    @unique @db.VarChar(50)
+  users     User[]
+  projects  Project[]
+  createdAt DateTime  @default(now()) @map("created_at")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique @db.VarChar(255)
+  passwordHash String      @map("password_hash")
+  name         String      @db.VarChar(255)
+  role         String      @db.VarChar(20)
+  active       Boolean     @default(true)
+  tribeId      String?     @map("tribe_id")
+  tribe        Tribe?      @relation(fields: [tribeId], references: [id])
+  projects     Project[]   @relation("ProjectCSM")
+  terminados   Project[]   @relation("TerminadoBy")
+  cerrados     Project[]   @relation("CerradoBy")
+  createdAt    DateTime    @default(now()) @map("created_at")
+}
+
+model Project {
+  id             String        @id @default(uuid())
+  internalId     String        @unique @default(dbgenerated("(UUID())")) @map("internal_id")
+  csmId          String        @map("csm_id")
+  csm            User          @relation("ProjectCSM", fields: [csmId], references: [id])
+  tribeId        String?       @map("tribe_id")
+  tribe          Tribe?        @relation(fields: [tribeId], references: [id])
+  estado         String        @default("en_progreso") @db.VarChar(20)
+  nombreCliente  String?       @map("nombre_cliente") @db.VarChar(255)
+  nombreProyecto String?       @map("nombre_proyecto") @db.VarChar(255)
+  crmId          String?       @map("crm_id") @db.VarChar(100)
+  fechaInicio    DateTime?     @map("fecha_inicio")
+  interlocutores String?       @db.Text
+  evidencia      String?       @db.Text
+  vozDolor       String?       @map("voz_dolor") @db.Text
+  impactoNegocio String?       @map("impacto_negocio") @db.Text
+  terminadoById  String?       @map("terminado_by")
+  terminadoBy    User?         @relation("TerminadoBy", fields: [terminadoById], references: [id])
+  terminadoAt    DateTime?     @map("terminado_at")
+  cerradoById    String?       @map("cerrado_by")
+  cerradoBy      User?         @relation("CerradoBy", fields: [cerradoById], references: [id])
+  cerradoAt      DateTime?     @map("cerrado_at")
+  symptoms       Symptom[]
+  causas         Causa[]
+  kpis           Kpi[]
+  attachments    Attachment[]
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+}
+
+model Symptom {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  what        String   @db.Text
+  who         String   @db.Text
+  whenField   String   @map("when_field") @db.Text
+  whereField  String   @map("where_field") @db.Text
+  how         String   @db.Text
+  declaration String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+}
+
+model Causa {
+  id              String   @id @default(uuid())
+  projectId       String   @map("project_id")
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  why1            String   @map("why_1") @db.Text
+  why2            String   @map("why_2") @db.Text
+  why3            String   @map("why_3") @db.Text
+  why4            String?  @map("why_4") @db.Text
+  why5            String?  @map("why_5") @db.Text
+  rootCause       String   @map("root_cause") @db.Text
+  originMetodo    Boolean  @default(false) @map("origin_metodo")
+  originMaquina   Boolean  @default(false) @map("origin_maquina")
+  originGobernanza Boolean @default(false) @map("origin_gobernanza")
+  createdAt       DateTime @default(now()) @map("created_at")
+}
+
+model Kpi {
+  id           String   @id @default(uuid())
+  projectId    String   @map("project_id")
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  nombre       String   @db.VarChar(255)
+  valorActual  String   @map("valor_actual") @db.VarChar(255)
+  valorObjetivo String  @map("valor_objetivo") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  projectId    String   @map("project_id")
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title        String   @db.VarChar(255)
+  originalName String   @map("original_name") @db.VarChar(255)
+  storedName   String   @map("stored_name") @db.VarChar(255)
+  fileSize     Int?     @map("file_size")
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+}

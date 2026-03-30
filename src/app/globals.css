@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body text-on-surface bg-surface antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline font-bold;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-br from-primary to-primary-container
+           text-white px-6 py-2.5 rounded-xl font-headline font-bold
+           shadow-elevated hover:brightness-110 active:scale-[0.98]
+           transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm;
+  }
+  .btn-secondary {
+    @apply bg-surface-container-high text-primary
+           px-6 py-2 rounded-lg font-body font-bold
+           hover:brightness-110 transition-all text-sm;
+  }
+  .card {
+    @apply bg-surface-container-lowest p-6 rounded-xl shadow-card border border-outline-variant/15;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 bg-surface-container-lowest
+           border-b-2 border-outline-variant/30
+           focus:border-primary focus:ring-0
+           rounded-t-lg transition-all font-body text-sm
+           placeholder:text-outline/50;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-3 py-1
+           text-[10px] font-bold uppercase tracking-wider rounded-full;
+  }
+}
