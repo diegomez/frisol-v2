@@ -13,7 +13,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY . .
-RUN npx prisma generate && npm run build
+RUN mkdir -p public && npx prisma generate && npm run build
 
 # Production
 FROM base AS runner
