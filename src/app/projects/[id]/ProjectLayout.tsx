@@ -64,7 +64,7 @@ export default function ProjectLayout({ user, project, params, children }: Props
               Dashboard
             </Link>
           </div>
-          <div className="text-sm text-on-surface-variant font-mono">{project.internalId}</div>
+          <div className="text-sm text-on-surface-variant font-mono">PRJ-{project.id.substring(0, 6).toUpperCase()}</div>
         </div>
       </header>
 
@@ -75,7 +75,7 @@ export default function ProjectLayout({ user, project, params, children }: Props
             {project.nombreProyecto || 'Nuevo proyecto'}
           </h2>
           <p className="text-sm text-on-surface-variant">
-            {project.nombreCliente || 'Sin cliente'} — {pages.find(p => typeof window !== 'undefined' && window.location.pathname.includes(p.path))?.name || ''}
+            {project.nombreCliente || 'Sin cliente'}
           </p>
         </div>
 
