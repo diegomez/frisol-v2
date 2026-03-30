@@ -4,12 +4,14 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci && npx prisma generate
+COPY prisma ./prisma
+RUN npm ci --ignore-scripts && npx prisma generate
 
 # Build
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY . .
 RUN npx prisma generate && npm run build
 
