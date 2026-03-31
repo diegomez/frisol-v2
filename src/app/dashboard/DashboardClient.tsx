@@ -117,6 +117,7 @@ export default function DashboardClient({ user }: Props) {
     en_progreso: projects.filter(p => p.estado === 'en_progreso').length,
     terminado: projects.filter(p => p.estado === 'terminado').length,
     cerrado: projects.filter(p => p.estado === 'cerrado').length,
+    cancelado: projects.filter(p => p.estado === 'cancelado').length,
   }), [projects]);
 
   const roleLabels: Record<string, string> = { admin: 'Admin', csm: 'CSM', po: 'PO', dev: 'Dev' };
@@ -165,11 +166,12 @@ export default function DashboardClient({ user }: Props) {
         )}
 
         {/* Counter Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             { label: 'En Progreso', count: counters.en_progreso, color: 'bg-amber-50', dot: 'bg-amber-500' },
             { label: 'Terminados', count: counters.terminado, color: 'bg-emerald-50', dot: 'bg-emerald-500' },
             { label: 'Cerrados', count: counters.cerrado, color: 'bg-gray-100', dot: 'bg-gray-400' },
+            { label: 'Cancelados', count: counters.cancelado, color: 'bg-red-50', dot: 'bg-red-500' },
           ].map((c) => (
             <div key={c.label} className="card flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl ${c.color} flex items-center justify-center`}><div className={`w-3 h-3 rounded-full ${c.dot}`} /></div>
@@ -189,6 +191,7 @@ export default function DashboardClient({ user }: Props) {
             <option value="en_progreso">En Progreso</option>
             <option value="terminado">Terminados</option>
             <option value="cerrado">Cerrados</option>
+            <option value="cancelado">Cancelados</option>
           </select>
         </div>
 
