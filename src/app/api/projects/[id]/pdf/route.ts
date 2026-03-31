@@ -40,7 +40,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   if (!project) return NextResponse.json({ message: 'No encontrado' }, { status: 404 });
 
   const isDraft = project.estado === 'en_progreso';
-  const estadoLabel = isDraft ? 'BORRADOR' : project.estado === 'terminado' ? 'Terminado' : 'Cerrado';
+  const estadoLabel = isDraft ? 'En Progreso' : project.estado === 'terminado' ? 'Terminado' : 'Cerrado';
 
   const symptomsHtml = project.symptoms.map((s, i) => `
     <div class="item"><h4>Síntoma #${i + 1}</h4>
@@ -86,7 +86,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     ${isDraft ? '.watermark{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:100px;color:rgba(245,158,11,0.1);font-weight:900;letter-spacing:12px;white-space:nowrap;pointer-events:none;z-index:0}' : ''}
   </style></head><body>
     ${isDraft ? '<div class="watermark">BORRADOR</div>' : ''}
-    <div class="header"><h1>FRISOL — Reporte de Proyecto</h1><div class="sub">Framework 4D — Traspaso Comercial → Desarrollo ${isDraft ? '<span class="badge badge-d">BORRADOR</span>' : ''}</div>
+    <div class="header"><h1>FRISOL — Reporte de Proyecto</h1><div class="sub">Framework 4D — Traspaso Comercial → Desarrollo</div>
     <div class="client"><span class="lbl">ID Interno:</span> ${esc(project.internalId)}<br><span class="lbl">Proyecto:</span> ${esc(project.nombreProyecto || 'Sin nombre')}<br><span class="lbl">Cliente:</span> ${esc(project.nombreCliente || 'Sin cliente')}<br><span class="lbl">CRM:</span> ${esc(project.crmId || '—')}<br><span class="lbl">Tribu:</span> ${esc(project.tribe?.name || '—')}<br><span class="lbl">Fecha:</span> ${fmtDate(project.fechaInicio)}</div>
     <div style="margin-top:8px;font-size:10px;color:#6b7280"><strong>Estado:</strong> <span class="badge ${isDraft ? 'badge-d' : project.estado === 'terminado' ? 'badge-t' : 'badge-c'}">${estadoLabel}</span> &nbsp;<strong>Generado:</strong> ${fmtDate(new Date())}</div></div>
 
