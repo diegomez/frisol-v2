@@ -14,6 +14,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       symptoms: true,
       causas: true,
       kpis: true,
+      urgencias: true,
     },
   });
   if (!project) return NextResponse.json({ message: 'Proyecto no encontrado' }, { status: 404 });
@@ -40,6 +41,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     impacto: !trim(project.impactoNegocio) ? 'red'
       : project.kpis.length === 0 || project.kpis.some(k => !trim(k.nombre) || !trim(k.valorActual) || !trim(k.valorObjetivo))
         ? 'yellow' : 'green',
+    dependencias: green(!!trim(project.dependencias)),
   };
 
   return NextResponse.json(progress);

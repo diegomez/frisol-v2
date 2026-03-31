@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface Props {
   user: { id: string; email: string; name: string; role: string };
@@ -18,11 +18,13 @@ const pages = [
   { id: '4', name: 'Voz del Dolor', path: 'voz-dolor' },
   { id: '5', name: 'Causas', path: 'causas' },
   { id: '6', name: 'Impacto', path: 'impacto' },
-  { id: '7', name: 'Cierre', path: 'cierre' },
+  { id: '7', name: 'Dependencias', path: 'dependencias' },
+  { id: '8', name: 'Cierre', path: 'cierre' },
 ];
 
 export default function ProjectLayout({ user, project, params, children }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const [progress, setProgress] = useState<Record<string, string>>({});
 
   const loadProgress = useCallback(async () => {
@@ -46,6 +48,7 @@ export default function ProjectLayout({ user, project, params, children }: Props
     'voz-dolor': progress.vozDolor || 'red',
     causas: progress.causas || 'red',
     impacto: progress.impacto || 'red',
+    dependencias: progress.dependencias || 'red',
   };
 
   return (
@@ -53,18 +56,44 @@ export default function ProjectLayout({ user, project, params, children }: Props
       {/* Header */}
       <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/15 shadow-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="flex items-center gap-2">
+          {/* Left: Logo + Dashboard + Project info */}
+          <div className="flex items-center gap-3 min-w-0">
+            <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-container rounded-lg flex items-center justify-center">
                 <span className="text-white text-sm font-extrabold font-headline">F</span>
               </div>
             </Link>
-            <Link href="/dashboard" className="text-sm font-body font-semibold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+            <Link href="/dashboard" className="text-sm font-body font-semibold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 shrink-0">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
               Dashboard
             </Link>
+            <div className="h-5 w-px bg-outline-variant/30 shrink-0" />
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm font-semibold text-on-surface truncate">{project.nombreProyecto || 'Nuevo proyecto'}</span>
+              <span className="text-xs text-on-surface-variant font-mono shrink-0">PRJ-{String(project.projectNumber || 0).padStart(5, '0')}</span>
+              {project.urgencias?.length > 0 && (() => {
+                const maxTipo = project.urgencias.some((u: any) => u.tipo === 'alta') ? 'alta' : project.urgencias.some((u: any) => u.tipo === 'media') ? 'media' : 'baja';
+                return (
+                  <span className={`badge text-[9px] shrink-0 ${maxTipo === 'alta' ? 'bg-red-100 text-red-700' : maxTipo === 'media' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                    ⚡{maxTipo.toUpperCase()}
+                  </span>
+                );
+              })()}
+            </div>
           </div>
-          <div className="text-sm text-on-surface-variant font-mono">PRJ-{String(project.projectNumber || 0).padStart(5, '0')}</div>
+
+          {/* Right: User + Logout */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-semibold text-on-surface">{user.name}</p>
+            </div>
+            <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : user.role === 'csm' ? 'bg-teal-100 text-teal-800' : user.role === 'po' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+              {user.role}
+            </span>
+            <button onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); router.push('/login'); }} className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" title="Cerrar sesión">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -84,7 +113,7 @@ export default function ProjectLayout({ user, project, params, children }: Props
           <div className="flex items-center gap-2">
             {pages.map((page) => {
               const status = progressMap[page.path] || 'red';
-              const isActive = typeof window !== 'undefined' && window.location.pathname.includes(`/${page.path}`);
+              const isActive = pathname?.includes(`/${page.path}`);
 
               return (
                 <Link

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
   const projects = await prisma.project.findMany({
     where: { ...where, deletedAt: null },
-    include: { csm: { select: { name: true, id: true } }, tribe: { select: { name: true } } },
+    include: { csm: { select: { name: true, id: true } }, tribe: { select: { name: true } }, urgencias: { select: { tipo: true } } },
     orderBy: { updatedAt: 'desc' },
   });
 
@@ -32,7 +32,11 @@ export async function POST() {
   const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
 
   const project = await prisma.project.create({
-    data: { csmId: user.id, tribeId: dbUser?.tribeId },
+    data: {
+      csmId: user.id,
+      tribeId: dbUser?.tribeId,
+      stateHistory: { create: { estado: 'en_progreso', userId: user.id } },
+    },
     include: { csm: { select: { name: true } }, tribe: { select: { name: true } } },
   });
 

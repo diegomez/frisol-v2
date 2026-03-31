@@ -92,7 +92,7 @@ export default function ImpactoPage() {
 
         <div className="flex justify-between pt-4">
           <button onClick={() => router.push(`/projects/${id}/causas`)} className="btn-secondary">← Anterior</button>
-          <button onClick={() => router.push(`/projects/${id}/cierre`)} className="btn-primary">Siguiente →</button>
+          <button onClick={() => router.push(`/projects/${id}/dependencias`)} className="btn-primary">Siguiente →</button>
         </div>
       </div>
     </div>

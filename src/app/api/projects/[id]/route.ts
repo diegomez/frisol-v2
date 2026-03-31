@@ -17,6 +17,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       symptoms: { orderBy: { createdAt: 'asc' } },
       causas: { orderBy: { createdAt: 'asc' } },
       kpis: { orderBy: { createdAt: 'asc' } },
+      urgencias: { orderBy: { createdAt: 'asc' } },
       attachments: { orderBy: { uploadedAt: 'desc' } },
     },
   });
@@ -36,7 +37,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   const body = await request.json();
   const updateData: any = {};
-  const fields = ['nombreCliente', 'nombreProyecto', 'crmId', 'fechaInicio', 'interlocutores', 'tribeId', 'evidencia', 'vozDolor', 'impactoNegocio', 'importancia', 'pedido'];
+  const fields = ['nombreCliente', 'nombreProyecto', 'crmId', 'fechaInicio', 'interlocutores', 'tribeId', 'evidencia', 'vozDolor', 'impactoNegocio', 'dependencias', 'importancia', 'pedido'];
   for (const f of fields) {
     if (f in body) {
       updateData[f] = f === 'fechaInicio' && body[f] ? new Date(body[f]) : body[f];

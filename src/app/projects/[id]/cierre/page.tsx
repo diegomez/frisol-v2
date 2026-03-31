@@ -9,15 +9,19 @@ export default function CierrePage() {
   const id = params.id as string;
   const [project, setProject] = useState<any>(null);
   const [progress, setProgress] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
   const [showConfirm, setShowConfirm] = useState<string | null>(null);
   const [motivo, setMotivo] = useState('');
   const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
+  const loadData = () => {
     fetch(`/api/projects/${id}`).then(r => r.json()).then(setProject);
     fetch(`/api/projects/${id}/progress`).then(r => r.json()).then(setProgress);
+    fetch(`/api/projects/${id}/history`).then(r => r.json()).then(setHistory);
     fetch('/api/auth/me').then(r => r.ok ? r.json() : null).then(setUser);
-  }, [id]);
+  };
+
+  useEffect(() => { loadData(); }, [id]);
 
   if (!project) return <div className="text-sm text-on-surface-variant">Cargando...</div>;
 
@@ -31,7 +35,7 @@ export default function CierrePage() {
     await fetch(`/api/projects/${id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado, motivo: motivo || undefined }) });
     setShowConfirm(null);
     setMotivo('');
-    fetch(`/api/projects/${id}`).then(r => r.json()).then(setProject);
+    loadData();
   };
 
   const handleExportPdf = () => { window.open(`/api/projects/${id}/pdf`, '_blank'); };
@@ -45,7 +49,7 @@ export default function CierrePage() {
   const statusLabels: Record<string, string> = { en_progreso: 'En Progreso', terminado: 'Terminado', cancelado: 'Cancelado', cerrado: 'Cerrado' };
   const statusColors: Record<string, string> = { en_progreso: 'bg-amber-100 text-amber-800', terminado: 'bg-emerald-100 text-emerald-800', cancelado: 'bg-red-100 text-red-800', cerrado: 'bg-gray-200 text-gray-700' };
 
-  const pageNames: Record<string, string> = { cliente: 'Cliente', diagnostico: 'Diagnóstico', evidencia: 'Evidencia', vozDolor: 'Voz del Dolor', causas: 'Causas', impacto: 'Impacto' };
+  const pageNames: Record<string, string> = { cliente: 'Cliente', diagnostico: 'Diagnóstico', evidencia: 'Evidencia', vozDolor: 'Voz del Dolor', causas: 'Causas', impacto: 'Impacto', dependencias: 'Dependencias' };
 
   return (
     <div>
@@ -100,7 +104,8 @@ export default function CierrePage() {
         { key: 'vozDolor', title: '4. Voz del Dolor', content: <p className="text-sm whitespace-pre-wrap">{project.vozDolor || 'No hay datos.'}</p> },
         { key: 'causas', title: '5. Causas', content: project.causas.length === 0 ? <p className="text-sm text-on-surface-variant">No hay causas.</p> : project.causas.map((c: any, i: number) => <div key={c.id} className="text-sm mb-2 p-2 bg-surface-container-low rounded"><p><strong>#{i + 1}</strong> {c.why1}</p><p className="text-purple-700 font-medium">Raíz: {c.rootCause}</p></div>) },
         { key: 'impacto', title: '6. Impacto', content: <div><p className="text-sm whitespace-pre-wrap mb-2">{project.impactoNegocio || 'No hay datos.'}</p>{project.kpis.length > 0 && <div className="space-y-1">{project.kpis.map((k: any, i: number) => <div key={k.id} className="text-sm">#{i + 1} {k.nombre} | Actual: {k.valorActual} → Objetivo: {k.valorObjetivo}</div>)}</div>}</div> },
-        { key: 'adjuntos', title: '7. Adjuntos', content: project.attachments.length === 0 ? <p className="text-sm text-on-surface-variant">No hay adjuntos.</p> : project.attachments.map((a: any, i: number) => <div key={a.id} className="text-sm">#{i + 1} {a.title} | {a.originalName} | {Math.round(a.fileSize / 1024)} KB</div>) },
+        { key: 'dependencias', title: '7. Dependencias', content: <div><p className="text-sm whitespace-pre-wrap mb-2">{project.dependencias || 'No hay dependencias.'}</p>{project.urgencias?.length > 0 && <div className="space-y-2 mt-2"><p className="text-xs font-bold text-on-surface-variant">Urgencias:</p>{project.urgencias.map((u: any, i: number) => <div key={u.id} className="text-sm p-2 bg-surface-container-low rounded"><p><span className={`badge text-[9px] mr-2 ${u.tipo === 'alta' ? 'bg-red-100 text-red-700' : u.tipo === 'media' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>{u.tipo.toUpperCase()}</span>{u.justificacion || '—'}</p>{u.fechaDeseada && <p className="text-xs text-on-surface-variant mt-1">Fecha deseada: {new Date(u.fechaDeseada).toLocaleDateString('es-AR')}</p>}</div>)}</div>}</div> },
+        { key: 'adjuntos', title: '8. Adjuntos', content: project.attachments.length === 0 ? <p className="text-sm text-on-surface-variant">No hay adjuntos.</p> : project.attachments.map((a: any, i: number) => <div key={a.id} className="text-sm">#{i + 1} {a.title} | {a.originalName} | {Math.round(a.fileSize / 1024)} KB</div>) },
       ].map(section => (
         <div key={section.key} className="border border-outline-variant/15 rounded-xl overflow-hidden mb-4">
           <div className="flex items-center justify-between px-4 py-3 bg-surface-container-low border-b border-outline-variant/10">
@@ -114,8 +119,47 @@ export default function CierrePage() {
         </div>
       ))}
 
+      {/* Historial de cambios */}
+      {history.length > 0 && (
+        <div className="border border-outline-variant/15 rounded-xl overflow-hidden mt-6">
+          <div className="flex items-center gap-2 px-4 py-3 bg-surface-container-low border-b border-outline-variant/10">
+            <svg className="w-4 h-4 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <h4 className="text-sm font-bold text-on-surface">Historial de cambios ({history.length})</h4>
+          </div>
+          <div className="divide-y divide-outline-variant/5">
+            {history.map((h: any, i: number) => {
+              const estadoConfig: Record<string, { color: string; label: string }> = {
+                en_progreso: { color: 'bg-amber-500', label: 'En Progreso' },
+                terminado: { color: 'bg-emerald-500', label: 'Terminado' },
+                cerrado: { color: 'bg-gray-400', label: 'Cerrado' },
+                cancelado: { color: 'bg-red-500', label: 'Cancelado' },
+                rechazado: { color: 'bg-orange-500', label: 'Rechazado' },
+                reabierto: { color: 'bg-blue-500', label: 'Reabierto' },
+              };
+              const cfg = estadoConfig[h.estado] || { color: 'bg-gray-300', label: h.estado };
+              return (
+                <div key={h.id} className="flex items-start gap-3 px-4 py-3">
+                  <div className="flex flex-col items-center mt-1 shrink-0">
+                    <span className={`w-2.5 h-2.5 rounded-full ${cfg.color}`} />
+                    {i < history.length - 1 && <div className="w-px h-6 bg-outline-variant/20 mt-1" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-on-surface">{cfg.label}</p>
+                      <span className="text-xs text-on-surface-variant shrink-0">{new Date(h.createdAt).toLocaleString('es-AR')}</span>
+                    </div>
+                    <p className="text-xs text-on-surface-variant">por <strong>{h.user?.name || '—'}</strong> ({h.user?.role || '—'})</p>
+                    {h.motivo && <p className="text-xs text-amber-700 mt-1 p-2 bg-amber-50 rounded">{h.motivo}</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between pt-6">
-        <button onClick={() => router.push(`/projects/${id}/impacto`)} className="btn-secondary">← Anterior</button>
+        <button onClick={() => router.push(`/projects/${id}/dependencias`)} className="btn-secondary">← Anterior</button>
         <button onClick={() => router.push('/dashboard')} className="btn-secondary">Volver al Dashboard</button>
       </div>
 
@@ -135,7 +179,7 @@ export default function CierrePage() {
             </p>
             {(showConfirm === 'rechazar' || showConfirm === 'cancelado') && (
               <div className="mb-4">
-                <label className="block text-xs font-bold text-on-surface-variant mb-1">Motivo {showConfirm === 'cancelado' ? '(requerido)' : '(opcional)'}</label>
+                <label className="block text-xs font-bold text-on-surface-variant mb-1">Motivo (requerido)</label>
                 <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} className="input-field" placeholder="Explicá por qué se rechaza/cancela este proyecto..." />
               </div>
             )}
@@ -149,7 +193,7 @@ export default function CierrePage() {
                     : 'en_progreso';
                   handleEstado(targetEstado);
                 }}
-                disabled={showConfirm === 'cancelado' && !motivo.trim()}
+                disabled={(showConfirm === 'cancelado' || showConfirm === 'rechazar') && !motivo.trim()}
                 className={`btn-primary ${showConfirm === 'cancelado' ? 'bg-red-600 hover:bg-red-700' : ''} disabled:opacity-50`}
               >
                 Confirmar

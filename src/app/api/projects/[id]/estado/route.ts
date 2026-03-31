@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
+async function recordHistory(projectId: string, estado: string, userId: string, motivo?: string) {
+  await prisma.stateHistory.create({
+    data: { projectId, estado, userId, motivo: motivo || null },
+  });
+}
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
@@ -17,6 +23,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       where: { id: params.id },
       data: { estado: 'terminado', terminadoById: user.id, terminadoAt: new Date(), rechazoMotivo: null },
     });
+    await recordHistory(params.id, 'terminado', user.id);
     return NextResponse.json(updated);
   }
 
@@ -27,6 +34,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       where: { id: params.id },
       data: { estado: 'cerrado', cerradoById: user.id, cerradoAt: new Date() },
     });
+    await recordHistory(params.id, 'cerrado', user.id);
     return NextResponse.json(updated);
   }
 
@@ -37,6 +45,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       where: { id: params.id },
       data: { estado: 'cancelado', canceladoById: user.id, canceladoAt: new Date(), rechazoMotivo: motivo || null },
     });
+    await recordHistory(params.id, 'cancelado', user.id, motivo);
     return NextResponse.json(updated);
   }
 
@@ -47,6 +56,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         where: { id: params.id },
         data: { estado: 'en_progreso', terminadoById: null, terminadoAt: null, rechazoMotivo: motivo || null },
       });
+      await recordHistory(params.id, 'rechazado', user.id, motivo);
       return NextResponse.json(updated);
     }
     // Admin reopens from cancelado or cerrado
@@ -61,6 +71,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           rechazoMotivo: null,
         },
       });
+      await recordHistory(params.id, 'reabierto', user.id, motivo);
       return NextResponse.json(updated);
     }
     return NextResponse.json({ message: 'Sin permisos para esta acción' }, { status: 403 });

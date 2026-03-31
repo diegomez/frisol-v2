@@ -12,7 +12,15 @@ interface Project {
   estado: string;
   csm: { name: string; id: string };
   tribe: { name: string } | null;
+  urgencias: { tipo: string }[];
   updatedAt: string;
+}
+
+function getMaxUrgencia(urgencias: { tipo: string }[]): string | null {
+  if (!urgencias?.length) return null;
+  if (urgencias.some(u => u.tipo === 'alta')) return 'alta';
+  if (urgencias.some(u => u.tipo === 'media')) return 'media';
+  return 'baja';
 }
 
 interface ProgressRecord {
@@ -211,7 +219,16 @@ export default function DashboardClient({ user }: Props) {
 
                   return (
                     <tr key={p.id} className="hover:bg-surface-container-low/40 transition-colors border-t border-outline-variant/5">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-on-surface-variant">PRJ-{String(p.projectNumber || 0).padStart(5, '0')}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-on-surface-variant">
+                        <div className="flex items-center gap-2">
+                          PRJ-{String(p.projectNumber || 0).padStart(5, '0')}
+                          {getMaxUrgencia(p.urgencias) && (
+                            <span className={`badge text-[9px] ${getMaxUrgencia(p.urgencias) === 'alta' ? 'bg-red-100 text-red-700' : getMaxUrgencia(p.urgencias) === 'media' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              ⚡{getMaxUrgencia(p.urgencias)?.toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {progress ? (
                           <div className="flex gap-1">
