@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="001-tribe" author="frisol">
+    <preConditions onFail="MARK_RAN"><not><tableExists tableName="Tribe"/></not></preConditions>
+    <createTable tableName="Tribe">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="name" type="VARCHAR(50)"><constraints nullable="false" unique="true"/></column>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="001-user" author="frisol">
+    <preConditions onFail="MARK_RAN"><not><tableExists tableName="User"/></not></preConditions>
+    <createTable tableName="User">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="email" type="VARCHAR(255)"><constraints nullable="false" unique="true"/></column>
+      <column name="password_hash" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="name" type="VARCHAR(255)"><constraints nullable="false"/></column>
+      <column name="role" type="VARCHAR(20)"><constraints nullable="false"/></column>
+      <column name="active" type="BOOLEAN" defaultValueBoolean="true"><constraints nullable="false"/></column>
+      <column name="tribe_id" type="VARCHAR(191)"/>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="User" baseColumnNames="tribe_id" constraintName="User_tribe_id_fkey" referencedTableName="Tribe" referencedColumnNames="id" onDelete="SET NULL" onUpdate="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="001-project" author="frisol">
+    <preConditions onFail="MARK_RAN"><not><tableExists tableName="Project"/></not></preConditions>
+    <createTable tableName="Project">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="internal_id" type="VARCHAR(191)"><constraints nullable="false" unique="true"/></column>
+      <column name="csm_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="tribe_id" type="VARCHAR(191)"/>
+      <column name="estado" type="VARCHAR(20)" defaultValue="en_progreso"><constraints nullable="false"/></column>
+      <column name="nombre_cliente" type="VARCHAR(255)"/>
+      <column name="nombre_proyecto" type="VARCHAR(255)"/>
+      <column name="crm_id" type="VARCHAR(100)"/>
+      <column name="fecha_inicio" type="DATETIME(3)"/>
+      <column name="interlocutores" type="TEXT"/>
+      <column name="evidencia" type="TEXT"/>
+      <column name="voz_dolor" type="TEXT"/>
+      <column name="impacto_negocio" type="TEXT"/>
+      <column name="terminado_by" type="VARCHAR(191)"/>
+      <column name="terminado_at" type="DATETIME(3)"/>
+      <column name="cerrado_by" type="VARCHAR(191)"/>
+      <column name="cerrado_at" type="DATETIME(3)"/>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+      <column name="updated_at" type="DATETIME(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="Project" baseColumnNames="csm_id" constraintName="Project_csm_id_fkey" referencedTableName="User" referencedColumnNames="id" onDelete="RESTRICT" onUpdate="CASCADE"/>
+    <addForeignKeyConstraint baseTableName="Project" baseColumnNames="tribe_id" constraintName="Project_tribe_id_fkey" referencedTableName="Tribe" referencedColumnNames="id" onDelete="SET NULL" onUpdate="CASCADE"/>
+    <addForeignKeyConstraint baseTableName="Project" baseColumnNames="terminado_by" constraintName="Project_terminado_by_fkey" referencedTableName="User" referencedColumnNames="id" onDelete="SET NULL" onUpdate="CASCADE"/>
+    <addForeignKeyConstraint baseTableName="Project" baseColumnNames="cerrado_by" constraintName="Project_cerrado_by_fkey" referencedTableName="User" referencedColumnNames="id" onDelete="SET NULL" onUpdate="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="001-symptom" author="frisol">
+    <preConditions onFail="MARK_RAN"><not><tableExists tableName="Symptom"/></not></preConditions>
+    <createTable tableName="Symptom">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="project_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="what" type="TEXT"><constraints nullable="false"/></column>
+      <column name="who" type="TEXT"><constraints nullable="false"/></column>
+      <column name="when_field" type="TEXT"><constraints nullable="false"/></column>
+      <column name="where_field" type="TEXT"><constraints nullable="false"/></column>
+      <column name="how" type="TEXT"><constraints nullable="false"/></column>
+      <column name="declaration" type="TEXT"><constraints nullable="false"/></column>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="Symptom" baseColumnNames="project_id" constraintName="Symptom_project_id_fkey" referencedTableName="Project" referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="001-causa" author="frisol">
+    <preConditions onFail="MARK_RAN"><not><tableExists tableName="Causa"/></not></preConditions>
+    <createTable tableName="Causa">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="project_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="why_1" type="TEXT"><constraints nullable="false"/></column>
+      <column name="why_2" type="TEXT"><constraints nullable="false"/></column>
+      <column name="why_3" type="TEXT"><constraints nullable="false"/></column>
+      <column name="why_4" type="TEXT"/>
+      <column name="why_5" type="TEXT"/>
+      <column name="root_cause" type="TEXT"><constraints nullable="false"/></column>
+      <column name="origin_metodo" type="BOOLEAN" defaultValueBoolean="false"><constraints nullable="false"/></column>
+      <column name="origin_maquina" type="BOOLEAN" defaultValueBoolean="false"><constraints nullable="false"/></column>
+      <column name="origin_gobernanza" type="BOOLEAN" defaultValueBoolean="false"><constraints nullable="false"/></column>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="Causa" baseColumnNames="project_id" constraintName="Causa_project_id_fkey" referencedTableName="Project" referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="001-kpi" author="frisol">
+    <preConditions onFail="MARK_RAN"><not><tableExists tableName="Kpi"/></not></preConditions>
+    <createTable tableName="Kpi">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="project_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="nombre" type="VARCHAR(255)"><constraints nullable="false"/></column>
+      <column name="valor_actual" type="VARCHAR(255)"><constraints nullable="false"/></column>
+      <column name="valor_objetivo" type="VARCHAR(255)"><constraints nullable="false"/></column>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="Kpi" baseColumnNames="project_id" constraintName="Kpi_project_id_fkey" referencedTableName="Project" referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+  </changeSet>
+
+  <changeSet id="001-attachment" author="frisol">
+    <preConditions onFail="MARK_RAN"><not><tableExists tableName="Attachment"/></not></preConditions>
+    <createTable tableName="Attachment">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="project_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="title" type="VARCHAR(255)"><constraints nullable="false"/></column>
+      <column name="original_name" type="VARCHAR(255)"><constraints nullable="false"/></column>
+      <column name="stored_name" type="VARCHAR(255)"><constraints nullable="false"/></column>
+      <column name="file_size" type="INT"/>
+      <column name="uploaded_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="Attachment" baseColumnNames="project_id" constraintName="Attachment_project_id_fkey" referencedTableName="Project" referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+  </changeSet>
+
+</databaseChangeLog>

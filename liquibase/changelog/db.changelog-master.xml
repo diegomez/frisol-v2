@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <!--
+    Frisol v2 — Liquibase Changelog
+    Orden cronológico de migraciones.
+    Cada <include> representa un changeset inmutable.
+  -->
+
+  <!-- v1: Estado inicial del proyecto (tablas base) -->
+  <include file="001-baseline.xml" relativeToChangelogFile="true"/>
+  <include file="002-project-fields.xml" relativeToChangelogFile="true"/>
+  <include file="003-urgencias.xml" relativeToChangelogFile="true"/>
+  <include file="004-dependencias.xml" relativeToChangelogFile="true"/>
+  <include file="005-state-history.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

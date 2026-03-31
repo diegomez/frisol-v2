@@ -1,0 +1,2 @@
+# Don't track JDBC drivers (download on demand)
+*.jar

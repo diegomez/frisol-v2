@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="005-state-history" author="frisol">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="StateHistory"/></not>
+    </preConditions>
+    <createTable tableName="StateHistory">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="project_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="estado" type="VARCHAR(20)"><constraints nullable="false"/></column>
+      <column name="user_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="motivo" type="TEXT"/>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="StateHistory" baseColumnNames="project_id" constraintName="StateHistory_project_id_fkey" referencedTableName="Project" referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+    <addForeignKeyConstraint baseTableName="StateHistory" baseColumnNames="user_id" constraintName="StateHistory_user_id_fkey" referencedTableName="User" referencedColumnNames="id" onDelete="RESTRICT" onUpdate="CASCADE"/>
+    <createIndex tableName="StateHistory" indexName="StateHistory_project_id_created_at_idx">
+      <column name="project_id"/>
+      <column name="created_at"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

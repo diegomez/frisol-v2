@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <!-- Convertir internal_id (UUID) a project_number (auto-increment) -->
+  <changeSet id="002-project-number" author="frisol">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="Project" columnName="internal_id"/>
+    </preConditions>
+    <dropUniqueConstraint tableName="Project" constraintName="Project_internal_id_key"/>
+    <dropColumn tableName="Project" columnName="internal_id"/>
+    <addColumn tableName="Project">
+      <column name="project_number" type="INT"><constraints nullable="false" unique="true"/></column>
+    </addColumn>
+    <addAutoIncrement tableName="Project" columnName="project_number" columnDataType="INT"/>
+  </changeSet>
+
+  <!-- Agregar importancia y pedido -->
+  <changeSet id="002-importancia-pedido" author="frisol">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="Project" columnName="importancia"/></not>
+    </preConditions>
+    <addColumn tableName="Project">
+      <column name="importancia" type="INT"/>
+      <column name="pedido" type="TEXT"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- Agregar cancelación -->
+  <changeSet id="002-cancelacion" author="frisol">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="Project" columnName="cancelado_by"/></not>
+    </preConditions>
+    <addColumn tableName="Project">
+      <column name="cancelado_by" type="VARCHAR(191)"/>
+      <column name="cancelado_at" type="DATETIME(3)"/>
+    </addColumn>
+    <addForeignKeyConstraint baseTableName="Project" baseColumnNames="cancelado_by" constraintName="Project_cancelado_by_fkey" referencedTableName="User" referencedColumnNames="id" onDelete="SET NULL" onUpdate="CASCADE"/>
+  </changeSet>
+
+  <!-- Agregar motivo de rechazo -->
+  <changeSet id="002-rechazo-motivo" author="frisol">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="Project" columnName="rechazo_motivo"/></not>
+    </preConditions>
+    <addColumn tableName="Project">
+      <column name="rechazo_motivo" type="TEXT"/>
+    </addColumn>
+  </changeSet>
+
+  <!-- Agregar soft delete -->
+  <changeSet id="002-soft-delete" author="frisol">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="Project" columnName="deleted_at"/></not>
+    </preConditions>
+    <addColumn tableName="Project">
+      <column name="deleted_at" type="DATETIME(3)"/>
+    </addColumn>
+  </changeSet>
+
+</databaseChangeLog>

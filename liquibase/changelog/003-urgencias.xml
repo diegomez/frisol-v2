@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="003-urgencia" author="frisol">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="Urgencia"/></not>
+    </preConditions>
+    <createTable tableName="Urgencia">
+      <column name="id" type="VARCHAR(191)"><constraints primaryKey="true"/></column>
+      <column name="project_id" type="VARCHAR(191)"><constraints nullable="false"/></column>
+      <column name="tipo" type="VARCHAR(20)"><constraints nullable="false"/></column>
+      <column name="justificacion" type="TEXT"><constraints nullable="false"/></column>
+      <column name="fecha_deseada" type="DATETIME(3)"/>
+      <column name="created_at" type="DATETIME(3)" defaultValueComputed="CURRENT_TIMESTAMP(3)"><constraints nullable="false"/></column>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="Urgencia" baseColumnNames="project_id" constraintName="Urgencia_project_id_fkey" referencedTableName="Project" referencedColumnNames="id" onDelete="CASCADE" onUpdate="CASCADE"/>
+  </changeSet>
+
+</databaseChangeLog>
