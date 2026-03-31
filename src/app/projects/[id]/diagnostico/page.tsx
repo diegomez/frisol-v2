@@ -23,7 +23,17 @@ export default function DiagnosticoPage() {
     <div>
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
         <h3 className="text-sm font-bold text-primary mb-1">Diagnóstico 5WTH</h3>
-        <p className="text-xs text-on-surface-variant">Usá la técnica 5WTH para describir cada síntoma. Podés guardar parcialmente con al menos un campo.</p>
+        <p className="text-xs text-on-surface-variant mb-3">La técnica 5WTH permite capturar información estructurada sobre cada síntoma del problema. Usá esta técnica para asegurar que el equipo de desarrollo reciba información completa y accionable.</p>
+        <div className="bg-white/50 rounded-lg p-3 space-y-1">
+          <p className="text-xs font-bold text-on-surface mb-1">Ejemplo práctico:</p>
+          <p className="text-xs text-on-surface-variant"><strong>Qué:</strong> El sistema de facturación se cae cuando hay más de 50 usuarios simultáneos</p>
+          <p className="text-xs text-on-surface-variant"><strong>Quién:</strong> Equipo de ventas (30 personas) y clientes premium que acceden al portal</p>
+          <p className="text-xs text-on-surface-variant"><strong>Cuándo:</strong> Todos los lunes a las 9am durante el cierre de mes, y los viernes a las 5pm</p>
+          <p className="text-xs text-on-surface-variant"><strong>Dónde:</strong> Módulo de facturación del portal web, en el servidor de reportes</p>
+          <p className="text-xs text-on-surface-variant"><strong>Cómo:</strong> Timeout de 30 segundos, error 500 en pantalla, la página queda en blanco</p>
+          <p className="text-xs text-on-surface-variant"><strong>Declaración:</strong> El módulo de facturación colapsa en horas pico causando pérdida de ventas y frustración en el equipo comercial</p>
+        </div>
+        <p className="text-xs text-on-surface-variant/70 mt-2">Podés guardar cada síntoma parcialmente con al menos un campo. Agregá todos los síntomas que identifiques, sin límite.</p>
       </div>
 
       {symptoms.length > 0 && (

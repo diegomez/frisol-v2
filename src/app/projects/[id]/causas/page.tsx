@@ -23,7 +23,17 @@ export default function CausasPage() {
     <div>
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
         <h3 className="text-sm font-bold text-primary mb-1">Análisis de Causas — 5 Porqués</h3>
-        <p className="text-xs text-on-surface-variant">Podés guardar parcialmente con al menos un campo. El último por qué completado es la causa raíz.</p>
+        <p className="text-xs text-on-surface-variant mb-3">La técnica de los 5 Porqués permite llegar a la causa raíz de un problema. Empezá con el síntoma y preguntá &quot;¿por qué?&quot; sucesivamente. Completá mínimo 3 porqués (máximo 5) y seleccioná al menos un origen.</p>
+        <div className="bg-white/50 rounded-lg p-3 space-y-1">
+          <p className="text-xs font-bold text-on-surface mb-1">Ejemplo práctico:</p>
+          <p className="text-xs text-on-surface-variant"><strong>Por qué 1:</strong> El sistema se cae porque no tiene cache de consultas</p>
+          <p className="text-xs text-on-surface-variant"><strong>Por qué 2:</strong> No tiene cache porque nunca se implementó al diseñar la arquitectura</p>
+          <p className="text-xs text-on-surface-variant"><strong>Por qué 3:</strong> No se diseñó con performance porque no había un requerimiento explícito de velocidad</p>
+          <p className="text-xs text-on-surface-variant"><strong>Por qué 4:</strong> El cliente no sabía que necesitaba performance porque nunca midieron tiempos de respuesta</p>
+          <p className="text-xs text-on-surface-variant mt-1"><strong>Causa raíz:</strong> <span className="text-purple-700 font-medium">El cliente no sabía que necesitaba performance porque nunca midieron tiempos de respuesta</span></p>
+          <p className="text-xs text-on-surface-variant"><strong>Origen:</strong> Método (proceso de relevamiento incompleto)</p>
+        </div>
+        <p className="text-xs text-on-surface-variant/70 mt-2">La causa raíz se calcula automáticamente con el último por qué completado. Podés tener múltiples causas incompletas y completarlas después.</p>
       </div>
 
       {causas.length > 0 && (

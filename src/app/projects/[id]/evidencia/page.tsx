@@ -42,9 +42,16 @@ function TextPage({ title, fieldName, helpTitle, helpDesc, helpExamples, placeho
   return (
     <div>
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
-        <h3 className="text-sm font-bold text-primary mb-1">{helpTitle}</h3>
-        <p className="text-xs text-on-surface-variant mb-2">{helpDesc}</p>
-        <ul className="list-disc list-inside text-xs text-on-surface-variant/70 space-y-0.5">{helpExamples.map((e: string, i: number) => <li key={i}>{e}</li>)}</ul>
+        <h3 className="text-sm font-bold text-primary mb-1">Evidencia Cuantitativa</h3>
+        <p className="text-xs text-on-surface-variant mb-3">Cargá datos numéricos y métricas que respalden el problema identificado. Esta información le da al equipo de desarrollo la dimensión real del impacto.</p>
+        <div className="bg-white/50 rounded-lg p-3 space-y-1">
+          <p className="text-xs font-bold text-on-surface mb-1">Ejemplos prácticos:</p>
+          <p className="text-xs text-on-surface-variant">• Tiempo promedio de respuesta del sistema: <strong>45 segundos</strong> (objetivo del negocio: 5 segundos)</p>
+          <p className="text-xs text-on-surface-variant">• Frecuencia de errores: <strong>15 veces por semana</strong> reportadas por usuarios</p>
+          <p className="text-xs text-on-surface-variant">• Costo de retrabajo: <strong>$2,500/mes</strong> en horas hombre dedicadas a solucionar el problema manualmente</p>
+          <p className="text-xs text-on-surface-variant">• Usuarios afectados: <strong>80% del equipo de ventas</strong> (aproximadamente 40 personas)</p>
+          <p className="text-xs text-on-surface-variant">• Pérdida de productividad: <strong>3 horas/productivo por día</strong> por usuario afectado</p>
+        </div>
       </div>
       <div className="space-y-4">
         <div>

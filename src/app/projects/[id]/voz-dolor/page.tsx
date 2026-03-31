@@ -39,11 +39,15 @@ export default function VozDolorPage() {
     <div>
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
         <h3 className="text-sm font-bold text-primary mb-1">Voz del Dolor — Insights</h3>
-        <p className="text-xs text-on-surface-variant mb-2">Cargá cómo se siente el usuario, citas textuales, frustraciones.</p>
-        <ul className="list-disc list-inside text-xs text-on-surface-variant/70 space-y-0.5">
-          <li>&quot;Cada lunes pierdo 2 horas peleando con el sistema&quot; — Juan Pérez, CFO</li>
-          <li>El equipo está frustrado porque el proceso les quita tiempo de ventas</li>
-        </ul>
+        <p className="text-xs text-on-surface-variant mb-3">Capturá cómo se siente el usuario frente al problema, citas textuales, frustraciones expresadas. Esta información le da contexto emocional al equipo de desarrollo y humaniza el caso de negocio.</p>
+        <div className="bg-white/50 rounded-lg p-3 space-y-1">
+          <p className="text-xs font-bold text-on-surface mb-1">Ejemplos prácticos:</p>
+          <p className="text-xs text-on-surface-variant">• <em>&quot;Cada lunes pierdo 2 horas peleando con el sistema antes de poder hacer mi primer factura&quot;</em> — Juan Pérez, CFO</p>
+          <p className="text-xs text-on-surface-variant">• El equipo de ventas está frustrado porque el proceso manual les quita tiempo que podrían usar para vender</p>
+          <p className="text-xs text-on-surface-variant">• Sienten que la herramienta no fue diseñada para su flujo de trabajo real</p>
+          <p className="text-xs text-on-surface-variant">• Un cliente amenazó con irse a la competencia por las demoras causadas por el sistema</p>
+          <p className="text-xs text-on-surface-variant">• El equipo ya no confía en el sistema y tiene procesos paralelos en Excel como workaround</p>
+        </div>
       </div>
       <div className="space-y-4">
         <div>

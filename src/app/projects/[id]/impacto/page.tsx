@@ -44,7 +44,17 @@ export default function ImpactoPage() {
     <div>
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
         <h3 className="text-sm font-bold text-primary mb-1">Impacto y Business Case</h3>
-        <p className="text-xs text-on-surface-variant">Describí cómo el problema afecta al negocio. Luego cargá las métricas.</p>
+        <p className="text-xs text-on-surface-variant mb-3">Describí cómo el problema afecta al negocio en términos de ingresos, eficiencia operativa o riesgo. Luego cargá las métricas o KPIs que cuantifican el impacto y definen el éxito de la solución.</p>
+        <div className="bg-white/50 rounded-lg p-3 space-y-1">
+          <p className="text-xs font-bold text-on-surface mb-1">Ejemplo de Impacto:</p>
+          <p className="text-xs text-on-surface-variant">La caída del módulo de facturación genera una pérdida estimada de $15,000/mes por demoras en el proceso de cobro. Además, el equipo de ventas pierde 3 horas diarias de productividad por usuario, lo que equivale a $8,000/mes en horas hombre improductivas. El riesgo de pérdida de clientes por demoras se estima en un 15% de la cartera anual.</p>
+        </div>
+        <div className="bg-white/50 rounded-lg p-3 space-y-1 mt-2">
+          <p className="text-xs font-bold text-on-surface mb-1">Ejemplos de KPIs:</p>
+          <p className="text-xs text-on-surface-variant">• <strong>Tiempo de facturación</strong> | Actual: 45 min → Objetivo: 5 min</p>
+          <p className="text-xs text-on-surface-variant">• <strong>Errores mensuales</strong> | Actual: 15 → Objetivo: 0</p>
+          <p className="text-xs text-on-surface-variant">• <strong>Satisfacción del equipo</strong> | Actual: 3/10 → Objetivo: 8/10</p>
+        </div>
       </div>
 
       <div className="space-y-6">
