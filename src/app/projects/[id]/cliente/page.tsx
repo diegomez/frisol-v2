@@ -11,6 +11,7 @@ export default function ClientePage() {
 
   const [form, setForm] = useState({
     nombreCliente: '', nombreProyecto: '', crmId: '',
+    importancia: '', pedido: '',
     fechaInicio: '', interlocutores: '', tribeId: '',
   });
   const [tribes, setTribes] = useState<{ id: string; name: string }[]>([]);
@@ -27,6 +28,8 @@ export default function ClientePage() {
           nombreCliente: p.nombreCliente || '',
           nombreProyecto: p.nombreProyecto || '',
           crmId: p.crmId || '',
+          importancia: p.importancia ? String(p.importancia) : '',
+          pedido: p.pedido || '',
           fechaInicio: p.fechaInicio ? p.fechaInicio.split('T')[0] : '',
           interlocutores: p.interlocutores || '',
           tribeId: p.tribeId || '',
@@ -46,6 +49,8 @@ export default function ClientePage() {
         nombreCliente: data.nombreCliente,
         nombreProyecto: data.nombreProyecto,
         crmId: data.crmId,
+        importancia: data.importancia ? parseInt(data.importancia) : null,
+        pedido: data.pedido,
         fechaInicio: data.fechaInicio ? new Date(data.fechaInicio + 'T00:00:00').toISOString() : null,
         interlocutores: data.interlocutores,
         tribeId: data.tribeId || null,
@@ -78,8 +83,8 @@ export default function ClientePage() {
   return (
     <div>
       {/* Help Zone */}
-      <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
-        <h3 className="text-sm font-bold text-primary mb-1">Descripción del Cliente</h3>
+      <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 mb-6">
+        <h3 className="text-sm font-bold text-sky-700 mb-1">Descripción del Cliente</h3>
         <p className="text-xs text-on-surface-variant mb-2">Cargá los datos básicos del cliente visitado.</p>
         <ul className="list-disc list-inside text-xs text-on-surface-variant/70 space-y-0.5">
           <li>Cliente: &apos;TechCorp S.A.&apos; — Empresa de software</li>
@@ -92,7 +97,7 @@ export default function ClientePage() {
         {/* Internal ID */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">ID Interno</label>
-          <input type="text" value={project.internalId || ''} disabled className="input-field bg-gray-100 cursor-not-allowed font-mono" />
+          <input type="text" value={`PRJ-${String(project.projectNumber || 0).padStart(5, '0')}`} disabled className="input-field bg-gray-100 cursor-not-allowed font-mono" />
         </div>
 
         <div>
@@ -108,6 +113,16 @@ export default function ClientePage() {
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">ID CRM <span className="text-red-500">*</span></label>
           <input type="text" value={form.crmId} onChange={(e) => handleChange('crmId', e.target.value)} className="input-field" placeholder="Ej: OPP-2026-001234" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Importancia <span className="text-red-500">*</span></label>
+          <input type="number" min={1} max={100000} value={form.importancia} onChange={(e) => handleChange('importancia', e.target.value)} className="input-field" placeholder="1 a 100000" />
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Pedido</label>
+          <textarea value={form.pedido} onChange={(e) => handleChange('pedido', e.target.value)} rows={4} className="input-field" placeholder="Describí lo que el usuario final le pidió al CSM..." />
         </div>
 
         <div>

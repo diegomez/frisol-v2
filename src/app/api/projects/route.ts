@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   }
 
   const projects = await prisma.project.findMany({
-    where,
+    where: { ...where, deletedAt: null },
     include: { csm: { select: { name: true, id: true } }, tribe: { select: { name: true } } },
     orderBy: { updatedAt: 'desc' },
   });

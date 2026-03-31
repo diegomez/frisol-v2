@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface Project {
   id: string;
-  internalId: string;
+  projectNumber: number;
   nombreCliente: string | null;
   nombreProyecto: string | null;
   fechaInicio: string | null;
@@ -31,6 +31,7 @@ interface Props {
 const stateColors: Record<string, { bg: string; text: string; label: string }> = {
   en_progreso: { bg: 'bg-amber-100', text: 'text-amber-800', label: 'En Progreso' },
   terminado: { bg: 'bg-emerald-100', text: 'text-emerald-800', label: 'Terminado' },
+  cancelado: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelado' },
   cerrado: { bg: 'bg-gray-200', text: 'text-gray-700', label: 'Cerrado' },
 };
 
@@ -97,7 +98,7 @@ export default function DashboardClient({ user }: Props) {
       const matchesSearch = !q ||
         (p.nombreCliente || '').toLowerCase().includes(q) ||
         (p.nombreProyecto || '').toLowerCase().includes(q) ||
-        (p.internalId || '').toLowerCase().includes(q) ||
+        `PRJ-${String(p.projectNumber || 0).padStart(5, '0')}`.toLowerCase().includes(q) ||
         (p.tribe?.name || '').toLowerCase().includes(q);
       const matchesState = stateFilter === 'all' || p.estado === stateFilter;
       return matchesSearch && matchesState;
@@ -210,7 +211,7 @@ export default function DashboardClient({ user }: Props) {
 
                   return (
                     <tr key={p.id} className="hover:bg-surface-container-low/40 transition-colors border-t border-outline-variant/5">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-on-surface-variant">{p.internalId}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-on-surface-variant">PRJ-{String(p.projectNumber || 0).padStart(5, '0')}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {progress ? (
                           <div className="flex gap-1">

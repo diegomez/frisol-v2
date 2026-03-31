@@ -87,7 +87,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   </style></head><body>
     ${isDraft ? '<div class="watermark">BORRADOR</div>' : ''}
     <div class="header"><h1>FRISOL — Reporte de Proyecto</h1><div class="sub">Framework 4D — Traspaso Comercial → Desarrollo</div>
-    <div class="client"><span class="lbl">ID Interno:</span> ${esc(project.internalId)}<br><span class="lbl">Proyecto:</span> ${esc(project.nombreProyecto || 'Sin nombre')}<br><span class="lbl">Cliente:</span> ${esc(project.nombreCliente || 'Sin cliente')}<br><span class="lbl">CRM:</span> ${esc(project.crmId || '—')}<br><span class="lbl">Tribu:</span> ${esc(project.tribe?.name || '—')}<br><span class="lbl">Fecha:</span> ${fmtDate(project.fechaInicio)}</div>
+    <div class="client"><span class="lbl">ID Interno:</span> PRJ-${String(project.projectNumber || 0).padStart(5, '0')}<br><span class="lbl">Proyecto:</span> ${esc(project.nombreProyecto || 'Sin nombre')}<br><span class="lbl">Cliente:</span> ${esc(project.nombreCliente || 'Sin cliente')}<br><span class="lbl">CRM:</span> ${esc(project.crmId || '—')}<br><span class="lbl">Tribu:</span> ${esc(project.tribe?.name || '—')}<br><span class="lbl">Fecha:</span> ${fmtDate(project.fechaInicio)}</div>
     <div style="margin-top:8px;font-size:10px;color:#6b7280"><strong>Estado:</strong> <span class="badge ${isDraft ? 'badge-d' : project.estado === 'terminado' ? 'badge-t' : 'badge-c'}">${estadoLabel}</span> &nbsp;<strong>Generado:</strong> ${fmtDate(new Date())}</div></div>
 
     <div class="section"><h2>1. Cliente</h2><p><strong>Interlocutores:</strong></p><div class="text-block">${esc(project.interlocutores || 'No especificado')}</div></div>

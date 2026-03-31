@@ -37,8 +37,8 @@ export default function VozDolorPage() {
 
   return (
     <div>
-      <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
-        <h3 className="text-sm font-bold text-primary mb-1">Voz del Dolor — Insights</h3>
+      <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 mb-6">
+        <h3 className="text-sm font-bold text-sky-700 mb-1">Voz del Dolor — Insights</h3>
         <p className="text-xs text-on-surface-variant mb-3">Capturá cómo se siente el usuario frente al problema, citas textuales, frustraciones expresadas. Esta información le da contexto emocional al equipo de desarrollo y humaniza el caso de negocio.</p>
         <div className="bg-white/50 rounded-lg p-3 space-y-1">
           <p className="text-xs font-bold text-on-surface mb-1">Ejemplos prácticos:</p>

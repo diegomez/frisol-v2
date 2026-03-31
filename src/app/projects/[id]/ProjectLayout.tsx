@@ -64,7 +64,7 @@ export default function ProjectLayout({ user, project, params, children }: Props
               Dashboard
             </Link>
           </div>
-          <div className="text-sm text-on-surface-variant font-mono">PRJ-{project.id.substring(0, 6).toUpperCase()}</div>
+          <div className="text-sm text-on-surface-variant font-mono">PRJ-{String(project.projectNumber || 0).padStart(5, '0')}</div>
         </div>
       </header>
 

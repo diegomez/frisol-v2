@@ -21,8 +21,8 @@ export default function CausasPage() {
 
   return (
     <div>
-      <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
-        <h3 className="text-sm font-bold text-primary mb-1">Análisis de Causas — 5 Porqués</h3>
+      <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 mb-6">
+        <h3 className="text-sm font-bold text-sky-700 mb-1">Análisis de Causas — 5 Porqués</h3>
         <p className="text-xs text-on-surface-variant mb-3">La técnica de los 5 Porqués permite llegar a la causa raíz de un problema. Empezá con el síntoma y preguntá &quot;¿por qué?&quot; sucesivamente. Completá mínimo 3 porqués (máximo 5) y seleccioná al menos un origen.</p>
         <div className="bg-white/50 rounded-lg p-3 space-y-1">
           <p className="text-xs font-bold text-on-surface mb-1">Ejemplo práctico:</p>

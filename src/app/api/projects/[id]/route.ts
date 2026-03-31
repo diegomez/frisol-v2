@@ -13,6 +13,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       tribe: true,
       terminadoBy: { select: { name: true } },
       cerradoBy: { select: { name: true } },
+      canceladoBy: { select: { name: true } },
       symptoms: { orderBy: { createdAt: 'asc' } },
       causas: { orderBy: { createdAt: 'asc' } },
       kpis: { orderBy: { createdAt: 'asc' } },
@@ -35,7 +36,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   const body = await request.json();
   const updateData: any = {};
-  const fields = ['nombreCliente', 'nombreProyecto', 'crmId', 'fechaInicio', 'interlocutores', 'tribeId', 'evidencia', 'vozDolor', 'impactoNegocio'];
+  const fields = ['nombreCliente', 'nombreProyecto', 'crmId', 'fechaInicio', 'interlocutores', 'tribeId', 'evidencia', 'vozDolor', 'impactoNegocio', 'importancia', 'pedido'];
   for (const f of fields) {
     if (f in body) {
       updateData[f] = f === 'fechaInicio' && body[f] ? new Date(body[f]) : body[f];
@@ -56,6 +57,6 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   if (project.estado !== 'en_progreso') return NextResponse.json({ message: 'Solo se pueden eliminar proyectos en progreso' }, { status: 403 });
   if (user.role === 'csm' && project.csmId !== user.id) return NextResponse.json({ message: 'No es tu proyecto' }, { status: 403 });
 
-  await prisma.project.delete({ where: { id: params.id } });
+  await prisma.project.update({ where: { id: params.id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ message: 'Proyecto eliminado' });
 }

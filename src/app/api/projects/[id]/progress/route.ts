@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const yellow = (hasAny: boolean, allComplete: boolean) => !hasAny ? 'red' : allComplete ? 'green' : 'yellow';
 
   const progress = {
-    cliente: green(!!(trim(project.nombreCliente) && trim(project.nombreProyecto) && project.fechaInicio && trim(project.crmId))),
+    cliente: green(!!(trim(project.nombreCliente) && trim(project.nombreProyecto) && project.fechaInicio && trim(project.crmId) && project.importancia)),
     diagnostico: yellow(
       project.symptoms.length > 0,
       project.symptoms.length > 0 && project.symptoms.every(s =>

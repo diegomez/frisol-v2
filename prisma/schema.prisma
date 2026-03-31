@@ -27,12 +27,13 @@ model User {
   projects     Project[]   @relation("ProjectCSM")
   terminados   Project[]   @relation("TerminadoBy")
   cerrados     Project[]   @relation("CerradoBy")
+  cancelados   Project[]   @relation("CanceladoBy")
   createdAt    DateTime    @default(now()) @map("created_at")
 }
 
 model Project {
   id             String        @id @default(uuid())
-  internalId     String        @unique @default(dbgenerated("(UUID())")) @map("internal_id")
+  projectNumber  Int           @unique @default(autoincrement()) @map("project_number")
   csmId          String        @map("csm_id")
   csm            User          @relation("ProjectCSM", fields: [csmId], references: [id])
   tribeId        String?       @map("tribe_id")
@@ -41,6 +42,8 @@ model Project {
   nombreCliente  String?       @map("nombre_cliente") @db.VarChar(255)
   nombreProyecto String?       @map("nombre_proyecto") @db.VarChar(255)
   crmId          String?       @map("crm_id") @db.VarChar(100)
+  importancia    Int?          @db.Int
+  pedido         String?       @db.Text
   fechaInicio    DateTime?     @map("fecha_inicio")
   interlocutores String?       @db.Text
   evidencia      String?       @db.Text
@@ -52,6 +55,11 @@ model Project {
   cerradoById    String?       @map("cerrado_by")
   cerradoBy      User?         @relation("CerradoBy", fields: [cerradoById], references: [id])
   cerradoAt      DateTime?     @map("cerrado_at")
+  canceladoById  String?       @map("cancelado_by")
+  canceladoBy    User?         @relation("CanceladoBy", fields: [canceladoById], references: [id])
+  canceladoAt    DateTime?     @map("cancelado_at")
+  rechazoMotivo  String?       @map("rechazo_motivo") @db.Text
+  deletedAt      DateTime?     @map("deleted_at")
   symptoms       Symptom[]
   causas         Causa[]
   kpis           Kpi[]

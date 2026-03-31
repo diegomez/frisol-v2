@@ -10,6 +10,7 @@ export default function CierrePage() {
   const [project, setProject] = useState<any>(null);
   const [progress, setProgress] = useState<any>(null);
   const [showConfirm, setShowConfirm] = useState<string | null>(null);
+  const [motivo, setMotivo] = useState('');
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -27,8 +28,9 @@ export default function CierrePage() {
   const canExportPdf = true;
 
   const handleEstado = async (estado: string) => {
-    await fetch(`/api/projects/${id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado }) });
+    await fetch(`/api/projects/${id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado, motivo: motivo || undefined }) });
     setShowConfirm(null);
+    setMotivo('');
     fetch(`/api/projects/${id}`).then(r => r.json()).then(setProject);
   };
 
@@ -40,15 +42,15 @@ export default function CierrePage() {
     router.push('/dashboard');
   };
 
-  const statusLabels: Record<string, string> = { en_progreso: 'En Progreso', terminado: 'Terminado', cerrado: 'Cerrado' };
-  const statusColors: Record<string, string> = { en_progreso: 'bg-amber-100 text-amber-800', terminado: 'bg-emerald-100 text-emerald-800', cerrado: 'bg-gray-200 text-gray-700' };
+  const statusLabels: Record<string, string> = { en_progreso: 'En Progreso', terminado: 'Terminado', cancelado: 'Cancelado', cerrado: 'Cerrado' };
+  const statusColors: Record<string, string> = { en_progreso: 'bg-amber-100 text-amber-800', terminado: 'bg-emerald-100 text-emerald-800', cancelado: 'bg-red-100 text-red-800', cerrado: 'bg-gray-200 text-gray-700' };
 
   const pageNames: Record<string, string> = { cliente: 'Cliente', diagnostico: 'Diagnóstico', evidencia: 'Evidencia', vozDolor: 'Voz del Dolor', causas: 'Causas', impacto: 'Impacto' };
 
   return (
     <div>
-      <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
-        <h3 className="text-sm font-bold text-primary mb-1">Resumen del Proyecto</h3>
+      <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 mb-6">
+        <h3 className="text-sm font-bold text-sky-700 mb-1">Resumen del Proyecto</h3>
         <p className="text-xs text-on-surface-variant">Revisá toda la información cargada antes de marcar como terminado.</p>
       </div>
 
@@ -58,12 +60,17 @@ export default function CierrePage() {
           <div>
             <span className={`badge ${statusColors[project.estado]}`}>{statusLabels[project.estado]}</span>
             {project.terminadoBy && <p className="text-xs text-on-surface-variant mt-1">Terminado por: <strong>{project.terminadoBy.name}</strong> — {new Date(project.terminadoAt).toLocaleString('es-AR')}</p>}
+            {project.canceladoBy && <p className="text-xs text-on-surface-variant mt-1">Cancelado por: <strong>{project.canceladoBy.name}</strong> — {new Date(project.canceladoAt).toLocaleString('es-AR')}</p>}
             {project.cerradoBy && <p className="text-xs text-on-surface-variant mt-1">Cerrado por: <strong>{project.cerradoBy.name}</strong> — {new Date(project.cerradoAt).toLocaleString('es-AR')}</p>}
+            {project.rechazoMotivo && <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg"><p className="text-xs font-bold text-amber-700">Motivo del rechazo/cancelación:</p><p className="text-xs text-amber-800 whitespace-pre-wrap">{project.rechazoMotivo}</p></div>}
           </div>
           <div className="flex gap-2 flex-wrap">
             {canTerminar && <button onClick={() => setShowConfirm('terminado')} className="btn-primary bg-emerald-600 hover:bg-emerald-700">✅ Terminar</button>}
             {canCerrar && <button onClick={() => setShowConfirm('cerrado')} className="btn-secondary">🔒 Cerrar</button>}
             {canRechazar && <button onClick={() => setShowConfirm('rechazar')} className="btn-secondary text-amber-600">← Rechazar</button>}
+            {user?.role === 'po' && project.estado === 'terminado' && <button onClick={() => setShowConfirm('cancelado')} className="btn-secondary text-red-600">❌ Cancelar</button>}
+            {project.estado === 'cancelado' && user?.role === 'admin' && <button onClick={() => setShowConfirm('reabrir')} className="btn-secondary text-amber-600">🔄 Reabrir</button>}
+            {project.estado === 'cerrado' && user?.role === 'admin' && <button onClick={() => setShowConfirm('reabrir')} className="btn-secondary text-amber-600">🔄 Reabrir</button>}
             {canExportPdf && <button onClick={handleExportPdf} className="btn-secondary text-purple-600">📄 PDF</button>}
             {project.estado === 'en_progreso' && (user?.role === 'csm' || user?.role === 'po') && <button onClick={handleDelete} className="btn-secondary text-red-600">🗑️ Eliminar</button>}
           </div>
@@ -80,7 +87,7 @@ export default function CierrePage() {
       {[
         { key: 'cliente', title: '1. Cliente', content: (
           <dl className="grid grid-cols-2 gap-1 text-sm">
-            <dt className="text-on-surface-variant">ID Interno:</dt><dd className="font-mono">{project.internalId}</dd>
+            <dt className="text-on-surface-variant">ID Interno:</dt><dd className="font-mono">PRJ-{String(project.projectNumber || 0).padStart(5, '0')}</dd>
             <dt className="text-on-surface-variant">Cliente:</dt><dd>{project.nombreCliente || '—'}</dd>
             <dt className="text-on-surface-variant">Proyecto:</dt><dd>{project.nombreProyecto || '—'}</dd>
             <dt className="text-on-surface-variant">CRM:</dt><dd>{project.crmId || '—'}</dd>
@@ -116,11 +123,37 @@ export default function CierrePage() {
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-elevated">
-            <h3 className="text-lg font-bold text-on-surface mb-3">{showConfirm === 'terminado' ? '¿Marcar como Terminado?' : showConfirm === 'cerrado' ? '¿Marcar como Cerrado?' : '¿Volver a En Progreso?'}</h3>
-            <p className="text-sm text-on-surface-variant mb-6">{showConfirm === 'terminado' ? 'El CSM no podrá editar. El PO podrá cerrar o rechazar.' : showConfirm === 'cerrado' ? 'Se cerrará definitivamente.' : 'Volverá a En Progreso.'}</p>
+            <h3 className="text-lg font-bold text-on-surface mb-3">
+              {showConfirm === 'terminado' ? '¿Marcar como Terminado?' : showConfirm === 'cerrado' ? '¿Marcar como Cerrado?' : showConfirm === 'cancelado' ? '¿Cancelar proyecto?' : showConfirm === 'rechazar' ? '¿Rechazar proyecto?' : '¿Reabrir proyecto?'}
+            </h3>
+            <p className="text-sm text-on-surface-variant mb-4">
+              {showConfirm === 'terminado' ? 'El CSM no podrá editar. El PO podrá cerrar o rechazar.'
+                : showConfirm === 'cerrado' ? 'Se cerrará definitivamente y se entregará a desarrollo.'
+                : showConfirm === 'cancelado' ? 'El proyecto se cancelará. Solo un Admin podrá reabrirlo.'
+                : showConfirm === 'rechazar' ? 'Volverá a En Progreso. El CSM podrá editar nuevamente.'
+                : 'Volverá a En Progreso. Se limpiarán todos los datos de auditoría.'}
+            </p>
+            {(showConfirm === 'rechazar' || showConfirm === 'cancelado') && (
+              <div className="mb-4">
+                <label className="block text-xs font-bold text-on-surface-variant mb-1">Motivo {showConfirm === 'cancelado' ? '(requerido)' : '(opcional)'}</label>
+                <textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} className="input-field" placeholder="Explicá por qué se rechaza/cancela este proyecto..." />
+              </div>
+            )}
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowConfirm(null)} className="btn-secondary">Cancelar</button>
-              <button onClick={() => handleEstado(showConfirm === 'terminado' ? 'terminado' : showConfirm === 'cerrado' ? 'cerrado' : 'en_progreso')} className="btn-primary">Confirmar</button>
+              <button onClick={() => { setShowConfirm(null); setMotivo(''); }} className="btn-secondary">Cancelar</button>
+              <button
+                onClick={() => {
+                  const targetEstado = showConfirm === 'terminado' ? 'terminado'
+                    : showConfirm === 'cerrado' ? 'cerrado'
+                    : showConfirm === 'cancelado' ? 'cancelado'
+                    : 'en_progreso';
+                  handleEstado(targetEstado);
+                }}
+                disabled={showConfirm === 'cancelado' && !motivo.trim()}
+                className={`btn-primary ${showConfirm === 'cancelado' ? 'bg-red-600 hover:bg-red-700' : ''} disabled:opacity-50`}
+              >
+                Confirmar
+              </button>
             </div>
           </div>
         </div>
