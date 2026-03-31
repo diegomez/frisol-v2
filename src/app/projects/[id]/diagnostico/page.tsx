@@ -12,9 +12,12 @@ export default function DiagnosticoPage() {
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [project, setProject] = useState<any>(null);
 
   const load = () => fetch(`/api/projects/${id}/symptoms`).then(r => r.json()).then(setSymptoms);
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { fetch(`/api/projects/${id}`).then(r => r.json()).then(setProject); load(); }, [id]);
+
+  const isEditable = project?.estado === 'en_progreso';
 
   const isComplete = (s: any) => s.what?.trim() && s.who?.trim() && s.whenField?.trim() && s.whereField?.trim() && s.how?.trim() && s.declaration?.trim();
   const hasAnyField = (s: any) => s.what?.trim() || s.who?.trim() || s.whenField?.trim() || s.whereField?.trim() || s.how?.trim() || s.declaration?.trim();
@@ -52,7 +55,7 @@ export default function DiagnosticoPage() {
               </button>
               {editingId === s.id && (
                 <div className="px-4 pb-4">
-                  <SymptomEdit symptom={s} projectId={id} onSaved={load} onDeleted={() => { load(); setEditingId(null); }} />
+                  <SymptomEdit symptom={s} projectId={id} isEditable={isEditable} onSaved={load} onDeleted={() => { load(); setEditingId(null); }} />
                 </div>
               )}
             </div>
@@ -66,9 +69,9 @@ export default function DiagnosticoPage() {
         </div>
       )}
 
-      {showNew && <SymptomNew projectId={id} onSaved={() => { load(); setShowNew(false); }} onCancel={() => setShowNew(false)} />}
+      {showNew && <SymptomNew projectId={id} isEditable={isEditable} onSaved={() => { load(); setShowNew(false); }} onCancel={() => setShowNew(false)} />}
 
-      {!showNew && (
+      {!showNew && isEditable && (
         <button onClick={() => setShowNew(true)} className="w-full px-4 py-3 border-2 border-dashed border-primary/30 text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-colors">
           + Agregar síntoma
         </button>
@@ -82,7 +85,7 @@ export default function DiagnosticoPage() {
   );
 }
 
-function SymptomNew({ projectId, onSaved, onCancel }: { projectId: string; onSaved: () => void; onCancel: () => void }) {
+function SymptomNew({ projectId, isEditable, onSaved, onCancel }: { projectId: string; isEditable: boolean; onSaved: () => void; onCancel: () => void }) {
   const [form, setForm] = useState({ what: '', who: '', whenField: '', whereField: '', how: '', declaration: '' });
   const hasAnyField = Object.values(form).some(v => v.trim());
   const isComplete = Object.values(form).every(v => v.trim());
@@ -93,14 +96,15 @@ function SymptomNew({ projectId, onSaved, onCancel }: { projectId: string; onSav
     onSaved();
   };
 
-  return <SymptomForm form={form} onChange={(f: string, v: string) => setForm({ ...form, [f]: v })} onSave={handleSave} onCancel={onCancel} isNew isComplete={isComplete} hasAnyField={hasAnyField} />;
+  return <SymptomForm form={form} onChange={(f: string, v: string) => setForm({ ...form, [f]: v })} onSave={handleSave} onCancel={onCancel} isNew isEditable={isEditable} isComplete={isComplete} hasAnyField={hasAnyField} />;
 }
 
-function SymptomEdit({ symptom, projectId, onSaved, onDeleted }: { symptom: Symptom; projectId: string; onSaved: () => void; onDeleted: () => void }) {
+function SymptomEdit({ symptom, projectId, isEditable, onSaved, onDeleted }: { symptom: Symptom; projectId: string; isEditable: boolean; onSaved: () => void; onDeleted: () => void }) {
   const [form, setForm] = useState({ what: symptom.what, who: symptom.who, whenField: symptom.whenField, whereField: symptom.whereField, how: symptom.how, declaration: symptom.declaration });
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleChange = (field: string, value: string) => {
+    if (!isEditable) return;
     const newForm = { ...form, [field]: value };
     setForm(newForm);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -115,10 +119,10 @@ function SymptomEdit({ symptom, projectId, onSaved, onDeleted }: { symptom: Symp
     onDeleted();
   };
 
-  return <SymptomForm form={form} onChange={handleChange} onDelete={handleDelete} isComplete={Object.values(form).every(v => v.trim())} hasAnyField={Object.values(form).some(v => v.trim())} />;
+  return <SymptomForm form={form} onChange={handleChange} onDelete={isEditable ? handleDelete : undefined} isEditable={isEditable} isComplete={Object.values(form).every(v => v.trim())} hasAnyField={Object.values(form).some(v => v.trim())} />;
 }
 
-function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isComplete, hasAnyField }: any) {
+function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isEditable, isComplete, hasAnyField }: any) {
   const fields = [
     { key: 'what', label: '¿Qué sucede?', ph: 'El sistema se cae con 50+ usuarios' },
     { key: 'who', label: '¿Quién?', ph: 'Equipo de ventas, clientes premium' },
@@ -136,7 +140,7 @@ function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isComp
           {!isComplete && hasAnyField && <span className="ml-2 text-amber-600 text-xs">⚠ Parcial</span>}
         </span>
         <div className="flex gap-2">
-          {onDelete && <button onClick={onDelete} className="text-red-500 text-xs font-bold">Eliminar</button>}
+          {onDelete && isEditable && <button onClick={onDelete} className="text-red-500 text-xs font-bold">Eliminar</button>}
           <button onClick={onCancel} className="text-on-surface-variant text-xs font-bold">{isNew ? 'Cancelar' : 'Cerrar'}</button>
         </div>
       </div>
@@ -145,9 +149,9 @@ function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isComp
           <div key={f.key}>
             <label className="block text-xs font-bold text-on-surface-variant mb-1">{f.label} <span className="text-red-500">*</span></label>
             {f.key === 'declaration' ? (
-              <textarea value={form[f.key]} onChange={(e) => onChange(f.key, e.target.value)} rows={3} className="input-field text-sm" placeholder={f.ph} />
+              <textarea value={form[f.key]} onChange={(e) => onChange(f.key, e.target.value)} rows={3} className="input-field text-sm" placeholder={f.ph} disabled={!isEditable} />
             ) : (
-              <input type="text" value={form[f.key]} onChange={(e) => onChange(f.key, e.target.value)} className="input-field text-sm" placeholder={f.ph} />
+              <input type="text" value={form[f.key]} onChange={(e) => onChange(f.key, e.target.value)} className="input-field text-sm" placeholder={f.ph} disabled={!isEditable} />
             )}
           </div>
         ))}

@@ -62,6 +62,7 @@ export default function ClientePage() {
   }, [id]);
 
   const handleChange = (field: string, value: string) => {
+    if (!isEditable) return;
     const newForm = { ...form, [field]: value };
     setForm(newForm);
     setSaveStatus('saving');
@@ -69,14 +70,14 @@ export default function ClientePage() {
     debounceRef.current = setTimeout(() => save(newForm), 500);
   };
 
-  const isEditable = project?.estado === 'en_progreso';
-
   // Save on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) { clearTimeout(debounceRef.current); save(form); }
     };
   }, [form, save]);
+
+  const isEditable = project?.estado === 'en_progreso';
 
   if (!project) return <div className="text-sm text-on-surface-variant">Cargando...</div>;
 
@@ -102,32 +103,32 @@ export default function ClientePage() {
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Nombre del cliente <span className="text-red-500">*</span></label>
-          <input type="text" value={form.nombreCliente} onChange={(e) => handleChange('nombreCliente', e.target.value)} className="input-field" placeholder="Ej: TechCorp S.A." />
+          <input type="text" value={form.nombreCliente} onChange={(e) => handleChange('nombreCliente', e.target.value)} className="input-field" placeholder="Ej: TechCorp S.A." disabled={!isEditable} />
         </div>
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Nombre del proyecto <span className="text-red-500">*</span></label>
-          <input type="text" value={form.nombreProyecto} onChange={(e) => handleChange('nombreProyecto', e.target.value)} className="input-field" placeholder="Ej: Automatización de reportes" />
+          <input type="text" value={form.nombreProyecto} onChange={(e) => handleChange('nombreProyecto', e.target.value)} className="input-field" placeholder="Ej: Automatización de reportes" disabled={!isEditable} />
         </div>
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">ID CRM <span className="text-red-500">*</span></label>
-          <input type="text" value={form.crmId} onChange={(e) => handleChange('crmId', e.target.value)} className="input-field" placeholder="Ej: OPP-2026-001234" />
+          <input type="text" value={form.crmId} onChange={(e) => handleChange('crmId', e.target.value)} className="input-field" placeholder="Ej: OPP-2026-001234" disabled={!isEditable} />
         </div>
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Importancia <span className="text-red-500">*</span></label>
-          <input type="number" min={1} max={100000} value={form.importancia} onChange={(e) => handleChange('importancia', e.target.value)} className="input-field" placeholder="1 a 100000" />
+          <input type="number" min={1} max={100000} value={form.importancia} onChange={(e) => handleChange('importancia', e.target.value)} className="input-field" placeholder="1 a 100000" disabled={!isEditable} />
         </div>
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Pedido</label>
-          <textarea value={form.pedido} onChange={(e) => handleChange('pedido', e.target.value)} rows={4} className="input-field" placeholder="Describí lo que el usuario final le pidió al CSM..." />
+          <textarea value={form.pedido} onChange={(e) => handleChange('pedido', e.target.value)} rows={4} className="input-field" placeholder="Describí lo que el usuario final le pidió al CSM..." disabled={!isEditable} />
         </div>
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Tribu</label>
-          <select value={form.tribeId} onChange={(e) => handleChange('tribeId', e.target.value)} className="input-field">
+          <select value={form.tribeId} onChange={(e) => handleChange('tribeId', e.target.value)} className="input-field" disabled={!isEditable}>
             <option value="">Sin tribu</option>
             {tribes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
@@ -135,16 +136,16 @@ export default function ClientePage() {
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Fecha de inicio <span className="text-red-500">*</span></label>
-          <input type="date" value={form.fechaInicio} onChange={(e) => handleChange('fechaInicio', e.target.value)} className="input-field" />
+          <input type="date" value={form.fechaInicio} onChange={(e) => handleChange('fechaInicio', e.target.value)} className="input-field" disabled={!isEditable} />
         </div>
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Interlocutores</label>
-          <textarea value={form.interlocutores} onChange={(e) => handleChange('interlocutores', e.target.value)} rows={4} className="input-field" placeholder="Ej: Juan Pérez (CFO) — jperez@techcorp.com" />
+          <textarea value={form.interlocutores} onChange={(e) => handleChange('interlocutores', e.target.value)} rows={4} className="input-field" placeholder="Ej: Juan Pérez (CFO) — jperez@techcorp.com" disabled={!isEditable} />
         </div>
 
         {/* Attachments */}
-        <AttachmentsSection projectId={id} />
+        <AttachmentsSection projectId={id} isEditable={isEditable} />
 
         {/* Save + Nav */}
         <div className="flex justify-between items-center pt-4">
@@ -161,7 +162,7 @@ export default function ClientePage() {
   );
 }
 
-function AttachmentsSection({ projectId }: { projectId: string }) {
+function AttachmentsSection({ projectId, isEditable }: { projectId: string; isEditable: boolean }) {
   const [attachments, setAttachments] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
@@ -195,7 +196,7 @@ function AttachmentsSection({ projectId }: { projectId: string }) {
     <div className="border-t border-outline-variant/10 pt-4 mt-4">
       <div className="flex items-center justify-between mb-3">
         <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant">Archivos adjuntos ({attachments.length})</label>
-        {!showForm && <button onClick={() => setShowForm(true)} className="text-sm text-primary font-bold hover:text-primary-container transition-colors">+ Agregar</button>}
+        {!showForm && isEditable && <button onClick={() => setShowForm(true)} className="text-sm text-primary font-bold hover:text-primary-container transition-colors">+ Agregar</button>}
       </div>
 
       {attachments.length > 0 && (
@@ -213,7 +214,7 @@ function AttachmentsSection({ projectId }: { projectId: string }) {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-4">
                 <a href={`/api/projects/${projectId}/attachments/${a.id}`} className="text-primary text-sm font-bold hover:text-primary-container">Descargar</a>
-                <button onClick={() => handleDelete(a.id)} className="text-red-500 text-sm font-bold hover:text-red-600">Eliminar</button>
+                {isEditable && <button onClick={() => handleDelete(a.id)} className="text-red-500 text-sm font-bold hover:text-red-600">Eliminar</button>}
               </div>
             </div>
           ))}

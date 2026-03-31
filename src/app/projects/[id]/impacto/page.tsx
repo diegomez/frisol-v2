@@ -16,10 +16,13 @@ export default function ImpactoPage() {
   const [kpis, setKpis] = useState<Kpi[]>([]);
   const [editingKpiId, setEditingKpiId] = useState<string | null>(null);
   const [showNewKpi, setShowNewKpi] = useState(false);
+  const [project, setProject] = useState<any>(null);
+
+  const isEditable = project?.estado === 'en_progreso';
 
   const loadKpis = () => fetch(`/api/projects/${id}/kpis`).then(r => r.json()).then(setKpis);
   useEffect(() => {
-    fetch(`/api/projects/${id}`).then(r => r.json()).then(p => { if (!initialized) { setImpacto(p.impactoNegocio || ''); setInitialized(true); } });
+    fetch(`/api/projects/${id}`).then(r => r.json()).then(p => { setProject(p); if (!initialized) { setImpacto(p.impactoNegocio || ''); setInitialized(true); } });
     loadKpis();
   }, [id, initialized]);
 
@@ -30,6 +33,7 @@ export default function ImpactoPage() {
   };
 
   const handleChange = (v: string) => {
+    if (!isEditable) return;
     setImpacto(v); setSaveStatus('saving');
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => saveImpacto(v), 500);
@@ -60,7 +64,7 @@ export default function ImpactoPage() {
       <div className="space-y-6">
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Impacto en el negocio <span className="text-red-500">*</span></label>
-          <textarea value={impacto} onChange={(e) => handleChange(e.target.value)} rows={5} className="input-field" placeholder="Describí cómo el problema afecta ingresos, eficiencia o riesgo..." />
+          <textarea value={impacto} onChange={(e) => handleChange(e.target.value)} rows={5} className="input-field" placeholder="Describí cómo el problema afecta ingresos, eficiencia o riesgo..." disabled={!isEditable} />
           <div className="text-sm text-on-surface-variant mt-1">{saveStatus === 'saving' && <span className="text-amber-600">Guardando...</span>}{saveStatus === 'saved' && <span className="text-emerald-600">✓ Guardado</span>}</div>
         </div>
 
@@ -74,14 +78,14 @@ export default function ImpactoPage() {
                     <span className={`w-3 h-3 rounded-full mr-3 ${isKpiComplete(k) ? 'bg-emerald-500' : 'bg-amber-500'}`} />
                     <div className="flex-1"><p className="text-sm"><span className="font-bold">#{i + 1}</span> {k.nombre || '(sin nombre)'} <span className="text-on-surface-variant">| Actual: {k.valorActual} → Objetivo: {k.valorObjetivo}</span></p></div>
                   </button>
-                  {editingKpiId === k.id && <div className="px-4 pb-4"><KpiEdit kpi={k} projectId={id} onSaved={loadKpis} onDeleted={() => { loadKpis(); setEditingKpiId(null); }} onCancel={() => setEditingKpiId(null)} /></div>}
+                  {editingKpiId === k.id && <div className="px-4 pb-4"><KpiEdit kpi={k} projectId={id} isEditable={isEditable} onSaved={loadKpis} onDeleted={() => { loadKpis(); setEditingKpiId(null); }} onCancel={() => setEditingKpiId(null)} /></div>}
                 </div>
               ))}
             </div>
           )}
           {kpis.length === 0 && !showNewKpi && <div className="text-center py-6 text-on-surface-variant/60 border-2 border-dashed border-outline-variant/20 rounded-xl mb-3">No hay KPIs cargados.</div>}
-          {showNewKpi && <KpiNew projectId={id} onSaved={() => { loadKpis(); setShowNewKpi(false); }} onCancel={() => setShowNewKpi(false)} />}
-          {!showNewKpi && (
+          {showNewKpi && <KpiNew projectId={id} isEditable={isEditable} onSaved={() => { loadKpis(); setShowNewKpi(false); }} onCancel={() => setShowNewKpi(false)} />}
+          {!showNewKpi && isEditable && (
             <>
               <button onClick={() => setShowNewKpi(true)} className="w-full px-4 py-3 border-2 border-dashed border-primary/30 text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-colors">
                 + Agregar KPI
@@ -99,7 +103,7 @@ export default function ImpactoPage() {
   );
 }
 
-function KpiNew({ projectId, onSaved, onCancel }: any) {
+function KpiNew({ projectId, isEditable, onSaved, onCancel }: any) {
   const [form, setForm] = useState({ nombre: '', valorActual: '', valorObjetivo: '' });
   const hasAnyField = form.nombre.trim() || form.valorActual.trim() || form.valorObjetivo.trim();
   const isComplete = form.nombre.trim() && form.valorActual.trim() && form.valorObjetivo.trim();
@@ -110,14 +114,15 @@ function KpiNew({ projectId, onSaved, onCancel }: any) {
     onSaved();
   };
 
-  return <KpiForm form={form} setForm={setForm} onSave={handleSave} onCancel={onCancel} isNew isComplete={isComplete} hasAnyField={hasAnyField} />;
+  return <KpiForm form={form} setForm={setForm} onSave={handleSave} onCancel={onCancel} isNew isEditable={isEditable} isComplete={isComplete} hasAnyField={hasAnyField} />;
 }
 
-function KpiEdit({ kpi, projectId, onSaved, onDeleted, onCancel }: any) {
+function KpiEdit({ kpi, projectId, isEditable, onSaved, onDeleted, onCancel }: any) {
   const [form, setForm] = useState({ nombre: kpi.nombre, valorActual: kpi.valorActual, valorObjetivo: kpi.valorObjetivo });
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleChange = (field: string, value: string) => {
+    if (!isEditable) return;
     const newForm = { ...form, [field]: value }; setForm(newForm);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -127,23 +132,23 @@ function KpiEdit({ kpi, projectId, onSaved, onDeleted, onCancel }: any) {
 
   const handleDelete = async () => { if (!confirm('¿Eliminar KPI?')) return; await fetch(`/api/projects/${projectId}/kpis/${kpi.id}`, { method: 'DELETE' }); onDeleted(); };
 
-  return <KpiForm form={form} setForm={setForm} onChange={handleChange} onDelete={handleDelete} onCancel={onCancel} isComplete={form.nombre.trim() && form.valorActual.trim() && form.valorObjetivo.trim()} />;
+  return <KpiForm form={form} setForm={setForm} onChange={handleChange} onDelete={isEditable ? handleDelete : undefined} onCancel={onCancel} isEditable={isEditable} isComplete={form.nombre.trim() && form.valorActual.trim() && form.valorObjetivo.trim()} />;
 }
 
-function KpiForm({ form, setForm, onSave, onCancel, onChange, onDelete, isNew, isComplete, hasAnyField }: any) {
+function KpiForm({ form, setForm, onSave, onCancel, onChange, onDelete, isNew, isEditable, isComplete, hasAnyField }: any) {
   const handleChange = onChange || ((f: string, v: string) => setForm({ ...form, [f]: v }));
 
   return (
     <div className={`border rounded-xl p-4 mb-3 ${isComplete ? 'border-emerald-300 bg-emerald-50/50' : hasAnyField ? 'border-amber-300 bg-amber-50/50' : 'border-outline-variant/20 bg-white'}`}>
       <div className="flex justify-between items-center mb-3">
         <span className="text-sm font-bold text-on-surface">{isNew ? 'Nuevo KPI' : 'Editar KPI'}{isComplete && <span className="ml-2 text-emerald-600 text-xs">✓ Completo</span>}{!isComplete && hasAnyField && <span className="ml-2 text-amber-600 text-xs">⚠ Parcial</span>}</span>
-        <div className="flex gap-2">{onDelete && <button onClick={onDelete} className="text-red-500 text-xs font-bold">Eliminar</button>}<button onClick={onCancel} className="text-on-surface-variant text-xs font-bold">{isNew ? 'Cancelar' : 'Cerrar'}</button></div>
+        <div className="flex gap-2">{onDelete && isEditable && <button onClick={onDelete} className="text-red-500 text-xs font-bold">Eliminar</button>}<button onClick={onCancel} className="text-on-surface-variant text-xs font-bold">{isNew ? 'Cancelar' : 'Cerrar'}</button></div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div><label className="block text-xs font-bold text-on-surface-variant mb-1">Nombre <span className="text-red-500">*</span></label><input type="text" value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} className="input-field text-sm" placeholder="Tiempo de respuesta" /></div>
-        <div><label className="block text-xs font-bold text-on-surface-variant mb-1">Actual <span className="text-red-500">*</span></label><input type="text" value={form.valorActual} onChange={(e) => handleChange('valorActual', e.target.value)} className="input-field text-sm" placeholder="45 segundos" /></div>
-        <div><label className="block text-xs font-bold text-on-surface-variant mb-1">Objetivo <span className="text-red-500">*</span></label><input type="text" value={form.valorObjetivo} onChange={(e) => handleChange('valorObjetivo', e.target.value)} className="input-field text-sm" placeholder="5 segundos" /></div>
-      </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div><label className="block text-xs font-bold text-on-surface-variant mb-1">Nombre <span className="text-red-500">*</span></label><input type="text" value={form.nombre} onChange={(e) => handleChange('nombre', e.target.value)} className="input-field text-sm" placeholder="Tiempo de respuesta" disabled={!isEditable} /></div>
+          <div><label className="block text-xs font-bold text-on-surface-variant mb-1">Actual <span className="text-red-500">*</span></label><input type="text" value={form.valorActual} onChange={(e) => handleChange('valorActual', e.target.value)} className="input-field text-sm" placeholder="45 segundos" disabled={!isEditable} /></div>
+          <div><label className="block text-xs font-bold text-on-surface-variant mb-1">Objetivo <span className="text-red-500">*</span></label><input type="text" value={form.valorObjetivo} onChange={(e) => handleChange('valorObjetivo', e.target.value)} className="input-field text-sm" placeholder="5 segundos" disabled={!isEditable} /></div>
+        </div>
       {isNew && onSave && <div className="mt-4 flex justify-end"><button onClick={onSave} disabled={!hasAnyField} className="btn-primary disabled:opacity-50">Guardar KPI</button></div>}
     </div>
   );

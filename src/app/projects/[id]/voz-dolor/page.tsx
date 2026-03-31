@@ -11,9 +11,13 @@ export default function VozDolorPage() {
   const [initialized, setInitialized] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [project, setProject] = useState<any>(null);
+
+  const isEditable = project?.estado === 'en_progreso';
 
   useEffect(() => {
     fetch(`/api/projects/${id}`).then(r => r.json()).then(p => {
+      setProject(p);
       if (!initialized) { setValue(p.vozDolor || ''); setInitialized(true); }
     });
   }, [id, initialized]);
@@ -25,6 +29,7 @@ export default function VozDolorPage() {
   };
 
   const handleChange = (v: string) => {
+    if (!isEditable) return;
     setValue(v);
     setSaveStatus('saving');
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -52,7 +57,7 @@ export default function VozDolorPage() {
       <div className="space-y-4">
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Voz del Dolor (Insights)</label>
-          <textarea value={value} onChange={(e) => handleChange(e.target.value)} rows={10} className="input-field" placeholder="Ingresá las impresiones del usuario, citas textuales, sentimientos..." />
+          <textarea value={value} onChange={(e) => handleChange(e.target.value)} rows={10} className="input-field" placeholder="Ingresá las impresiones del usuario, citas textuales, sentimientos..." disabled={!isEditable} />
         </div>
         <div className="flex justify-between items-center pt-4">
           <div className="flex items-center gap-4">

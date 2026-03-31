@@ -15,9 +15,13 @@ function TextPage({ title, fieldName, helpTitle, helpDesc, helpExamples, placeho
   const [initialized, setInitialized] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [project, setProject] = useState<any>(null);
+
+  const isEditable = project?.estado === 'en_progreso';
 
   useEffect(() => {
     fetch(`/api/projects/${id}`).then(r => r.json()).then(p => {
+      setProject(p);
       if (!initialized) { setValue(p[fieldName] || ''); setInitialized(true); }
     });
   }, [id, fieldName, initialized]);
@@ -29,6 +33,7 @@ function TextPage({ title, fieldName, helpTitle, helpDesc, helpExamples, placeho
   };
 
   const handleChange = (v: string) => {
+    if (!isEditable) return;
     setValue(v);
     setSaveStatus('saving');
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -56,7 +61,7 @@ function TextPage({ title, fieldName, helpTitle, helpDesc, helpExamples, placeho
       <div className="space-y-4">
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">{title}</label>
-          <textarea value={value} onChange={(e) => handleChange(e.target.value)} rows={10} className="input-field" placeholder={placeholder} />
+          <textarea value={value} onChange={(e) => handleChange(e.target.value)} rows={10} className="input-field" placeholder={placeholder} disabled={!isEditable} />
         </div>
         <div className="flex justify-between items-center pt-4">
           <div className="flex items-center gap-4">

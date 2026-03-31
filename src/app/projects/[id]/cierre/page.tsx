@@ -97,6 +97,8 @@ export default function CierrePage() {
             <dt className="text-on-surface-variant">CRM:</dt><dd>{project.crmId || '—'}</dd>
             <dt className="text-on-surface-variant">Tribu:</dt><dd>{project.tribe?.name || '—'}</dd>
             <dt className="text-on-surface-variant">Fecha:</dt><dd>{project.fechaInicio ? new Date(project.fechaInicio).toLocaleDateString('es-AR') : '—'}</dd>
+            <dt className="text-on-surface-variant">Importancia:</dt><dd>{project.importancia != null ? `${project.importancia}/5` : '—'}</dd>
+            <dt className="text-on-surface-variant">Pedido:</dt><dd className="col-span-2 whitespace-pre-wrap">{project.pedido || '—'}</dd>
           </dl>
         )},
         { key: 'diagnostico', title: '2. Diagnóstico', content: project.symptoms.length === 0 ? <p className="text-sm text-on-surface-variant">No hay síntomas.</p> : project.symptoms.map((s: any, i: number) => <div key={s.id} className="text-sm mb-2 p-2 bg-surface-container-low rounded"><p><strong>#{i + 1}</strong> {s.what}</p></div>) },
