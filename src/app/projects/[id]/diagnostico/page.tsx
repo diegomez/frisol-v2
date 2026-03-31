@@ -17,14 +17,13 @@ export default function DiagnosticoPage() {
   useEffect(() => { load(); }, [id]);
 
   const isComplete = (s: any) => s.what?.trim() && s.who?.trim() && s.whenField?.trim() && s.whereField?.trim() && s.how?.trim() && s.declaration?.trim();
-  const allComplete = symptoms.every(isComplete);
-  const canAdvance = symptoms.length > 0 && allComplete;
+  const hasAnyField = (s: any) => s.what?.trim() || s.who?.trim() || s.whenField?.trim() || s.whereField?.trim() || s.how?.trim() || s.declaration?.trim();
 
   return (
     <div>
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
         <h3 className="text-sm font-bold text-primary mb-1">Diagnóstico 5WTH</h3>
-        <p className="text-xs text-on-surface-variant">Usá la técnica 5WTH para describir cada síntoma. Todos los campos son obligatorios.</p>
+        <p className="text-xs text-on-surface-variant">Usá la técnica 5WTH para describir cada síntoma. Podés guardar parcialmente con al menos un campo.</p>
       </div>
 
       {symptoms.length > 0 && (
@@ -60,18 +59,9 @@ export default function DiagnosticoPage() {
       {showNew && <SymptomNew projectId={id} onSaved={() => { load(); setShowNew(false); }} onCancel={() => setShowNew(false)} />}
 
       {!showNew && (
-        <>
-          {symptoms.length > 0 && !allComplete && (
-            <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 mb-4">
-              Completá todos los síntomas existentes antes de agregar uno nuevo.
-            </div>
-          )}
-          {(symptoms.length === 0 || allComplete) && (
-            <button onClick={() => setShowNew(true)} className="w-full px-4 py-3 border-2 border-dashed border-primary/30 text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-colors">
-              + Agregar síntoma
-            </button>
-          )}
-        </>
+        <button onClick={() => setShowNew(true)} className="w-full px-4 py-3 border-2 border-dashed border-primary/30 text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-colors">
+          + Agregar síntoma
+        </button>
       )}
 
       <div className="flex justify-between pt-6">
@@ -84,15 +74,16 @@ export default function DiagnosticoPage() {
 
 function SymptomNew({ projectId, onSaved, onCancel }: { projectId: string; onSaved: () => void; onCancel: () => void }) {
   const [form, setForm] = useState({ what: '', who: '', whenField: '', whereField: '', how: '', declaration: '' });
+  const hasAnyField = Object.values(form).some(v => v.trim());
   const isComplete = Object.values(form).every(v => v.trim());
 
   const handleSave = async () => {
-    if (!isComplete) return;
+    if (!hasAnyField) return;
     await fetch(`/api/projects/${projectId}/symptoms`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
     onSaved();
   };
 
-  return <SymptomForm form={form} onChange={(f: string, v: string) => setForm({ ...form, [f]: v })} onSave={handleSave} onCancel={onCancel} isNew isComplete={isComplete} />;
+  return <SymptomForm form={form} onChange={(f: string, v: string) => setForm({ ...form, [f]: v })} onSave={handleSave} onCancel={onCancel} isNew isComplete={isComplete} hasAnyField={hasAnyField} />;
 }
 
 function SymptomEdit({ symptom, projectId, onSaved, onDeleted }: { symptom: Symptom; projectId: string; onSaved: () => void; onDeleted: () => void }) {
@@ -114,10 +105,10 @@ function SymptomEdit({ symptom, projectId, onSaved, onDeleted }: { symptom: Symp
     onDeleted();
   };
 
-  return <SymptomForm form={form} onChange={handleChange} onDelete={handleDelete} isComplete={Object.values(form).every(v => v.trim())} />;
+  return <SymptomForm form={form} onChange={handleChange} onDelete={handleDelete} isComplete={Object.values(form).every(v => v.trim())} hasAnyField={Object.values(form).some(v => v.trim())} />;
 }
 
-function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isComplete }: any) {
+function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isComplete, hasAnyField }: any) {
   const fields = [
     { key: 'what', label: '¿Qué sucede?', ph: 'El sistema se cae con 50+ usuarios' },
     { key: 'who', label: '¿Quién?', ph: 'Equipo de ventas, clientes premium' },
@@ -128,10 +119,11 @@ function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isComp
   ];
 
   return (
-    <div className={`border rounded-xl p-4 mb-4 ${isComplete ? 'border-emerald-300 bg-emerald-50/50' : 'border-outline-variant/20 bg-white'}`}>
+    <div className={`border rounded-xl p-4 mb-4 ${isComplete ? 'border-emerald-300 bg-emerald-50/50' : hasAnyField ? 'border-amber-300 bg-amber-50/50' : 'border-outline-variant/20 bg-white'}`}>
       <div className="flex justify-between items-center mb-3">
         <span className="text-sm font-bold text-on-surface">{isNew ? 'Nuevo síntoma' : 'Editar síntoma'}
-          {isComplete && <span className="ml-2 text-emerald-600 text-xs">✓</span>}
+          {isComplete && <span className="ml-2 text-emerald-600 text-xs">✓ Completo</span>}
+          {!isComplete && hasAnyField && <span className="ml-2 text-amber-600 text-xs">⚠ Parcial</span>}
         </span>
         <div className="flex gap-2">
           {onDelete && <button onClick={onDelete} className="text-red-500 text-xs font-bold">Eliminar</button>}
@@ -152,7 +144,7 @@ function SymptomForm({ form, onChange, onSave, onCancel, onDelete, isNew, isComp
       </div>
       {isNew && onSave && (
         <div className="mt-4 flex justify-end">
-          <button onClick={onSave} disabled={!isComplete} className="btn-primary disabled:opacity-50">Guardar síntoma</button>
+          <button onClick={onSave} disabled={!hasAnyField} className="btn-primary disabled:opacity-50">Guardar síntoma</button>
         </div>
       )}
     </div>

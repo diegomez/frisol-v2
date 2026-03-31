@@ -17,13 +17,13 @@ export default function CausasPage() {
   useEffect(() => { load(); }, [id]);
 
   const isComplete = (c: any) => c.why1?.trim() && c.why2?.trim() && c.why3?.trim() && (c.originMetodo || c.originMaquina || c.originGobernanza);
-  const allComplete = causas.every(isComplete);
+  const hasAnyField = (c: any) => c.why1?.trim() || c.why2?.trim() || c.why3?.trim() || c.why4?.trim() || c.why5?.trim();
 
   return (
     <div>
       <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 mb-6">
         <h3 className="text-sm font-bold text-primary mb-1">Análisis de Causas — 5 Porqués</h3>
-        <p className="text-xs text-on-surface-variant">Mínimo 3 porqués, máximo 5. El último completado es la causa raíz. Seleccioná al menos un origen.</p>
+        <p className="text-xs text-on-surface-variant">Podés guardar parcialmente con al menos un campo. El último por qué completado es la causa raíz.</p>
       </div>
 
       {causas.length > 0 && (
@@ -51,10 +51,9 @@ export default function CausasPage() {
       {showNew && <CausaNew projectId={id} onSaved={() => { load(); setShowNew(false); }} onCancel={() => setShowNew(false)} />}
 
       {!showNew && (
-        <>
-          {causas.length > 0 && !allComplete && <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 mb-4">Completá todas las causas existentes antes de agregar una nueva.</div>}
-          {(causas.length === 0 || allComplete) && <button onClick={() => setShowNew(true)} className="w-full px-4 py-3 border-2 border-dashed border-primary/30 text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-colors">+ Agregar causa</button>}
-        </>
+        <button onClick={() => setShowNew(true)} className="w-full px-4 py-3 border-2 border-dashed border-primary/30 text-primary rounded-xl hover:bg-primary/5 text-sm font-bold transition-colors">
+          + Agregar causa
+        </button>
       )}
 
       <div className="flex justify-between pt-6">
@@ -67,15 +66,16 @@ export default function CausasPage() {
 
 function CausaNew({ projectId, onSaved, onCancel }: any) {
   const [form, setForm] = useState({ why1: '', why2: '', why3: '', why4: '', why5: '', originMetodo: false, originMaquina: false, originGobernanza: false });
+  const hasAnyField = form.why1.trim() || form.why2.trim() || form.why3.trim() || form.why4.trim() || form.why5.trim();
   const isComplete = form.why1.trim() && form.why2.trim() && form.why3.trim() && (form.originMetodo || form.originMaquina || form.originGobernanza);
 
   const handleSave = async () => {
-    if (!isComplete) return;
+    if (!hasAnyField) return;
     await fetch(`/api/projects/${projectId}/causas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
     onSaved();
   };
 
-  return <CausaForm form={form} setForm={setForm} onSave={handleSave} onCancel={onCancel} isNew isComplete={isComplete} />;
+  return <CausaForm form={form} setForm={setForm} onSave={handleSave} onCancel={onCancel} isNew isComplete={isComplete} hasAnyField={hasAnyField} />;
 }
 
 function CausaEdit({ causa, projectId, onSaved, onDeleted }: any) {
@@ -100,7 +100,7 @@ function CausaEdit({ causa, projectId, onSaved, onDeleted }: any) {
   return <CausaForm form={form} setForm={setForm} onChange={handleChange} onDelete={handleDelete} isComplete={form.why1.trim() && form.why2.trim() && form.why3.trim() && (form.originMetodo || form.originMaquina || form.originGobernanza)} />;
 }
 
-function CausaForm({ form, setForm, onSave, onCancel, onChange, onDelete, isNew, isComplete }: any) {
+function CausaForm({ form, setForm, onSave, onCancel, onChange, onDelete, isNew, isComplete, hasAnyField }: any) {
   const rootCause = form.why5?.trim() || form.why4?.trim() || form.why3?.trim() || '';
   const handleChange = onChange || ((field: string, value: any) => setForm({ ...form, [field]: value }));
 
@@ -113,9 +113,9 @@ function CausaForm({ form, setForm, onSave, onCancel, onChange, onDelete, isNew,
   ];
 
   return (
-    <div className={`border rounded-xl p-4 mb-4 ${isComplete ? 'border-emerald-300 bg-emerald-50/50' : 'border-outline-variant/20 bg-white'}`}>
+    <div className={`border rounded-xl p-4 mb-4 ${isComplete ? 'border-emerald-300 bg-emerald-50/50' : hasAnyField ? 'border-amber-300 bg-amber-50/50' : 'border-outline-variant/20 bg-white'}`}>
       <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-bold text-on-surface">{isNew ? 'Nueva causa' : 'Editar causa'}{isComplete && <span className="ml-2 text-emerald-600 text-xs">✓</span>}</span>
+        <span className="text-sm font-bold text-on-surface">{isNew ? 'Nueva causa' : 'Editar causa'}{isComplete && <span className="ml-2 text-emerald-600 text-xs">✓ Completa</span>}{!isComplete && hasAnyField && <span className="ml-2 text-amber-600 text-xs">⚠ Parcial</span>}</span>
         <div className="flex gap-2">{onDelete && <button onClick={onDelete} className="text-red-500 text-xs font-bold">Eliminar</button>}<button onClick={onCancel} className="text-on-surface-variant text-xs font-bold">{isNew ? 'Cancelar' : 'Cerrar'}</button></div>
       </div>
       <div className="space-y-3">
@@ -131,7 +131,7 @@ function CausaForm({ form, setForm, onSave, onCancel, onChange, onDelete, isNew,
           </div>
         </div>
       </div>
-      {isNew && onSave && <div className="mt-4 flex justify-end"><button onClick={onSave} disabled={!isComplete} className="btn-primary disabled:opacity-50">Guardar causa</button></div>}
+      {isNew && onSave && <div className="mt-4 flex justify-end"><button onClick={onSave} disabled={!hasAnyField} className="btn-primary disabled:opacity-50">Guardar causa</button></div>}
     </div>
   );
 }
