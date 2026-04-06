@@ -1,12 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-
-async function recordHistory(projectId: string, estado: string, userId: string, motivo?: string) {
-  await prisma.stateHistory.create({
-    data: { projectId, estado, userId, motivo: motivo || null },
-  });
-}
+import { validateStateTransition, getTransitionData } from '@/lib/project-state-machine';
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -16,66 +11,25 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const project = await prisma.project.findUnique({ where: { id: params.id } });
   if (!project) return NextResponse.json({ message: 'Proyecto no encontrado' }, { status: 404 });
 
-  if (estado === 'terminado') {
-    if (user.role !== 'csm') return NextResponse.json({ message: 'Solo CSM puede marcar como terminado' }, { status: 403 });
-    if (project.csmId !== user.id) return NextResponse.json({ message: 'No es tu proyecto' }, { status: 403 });
-    const updated = await prisma.project.update({
-      where: { id: params.id },
-      data: { estado: 'terminado', terminadoById: user.id, terminadoAt: new Date(), rechazoMotivo: null },
-    });
-    await recordHistory(params.id, 'terminado', user.id);
-    return NextResponse.json(updated);
+  const validation = validateStateTransition(estado, user, project);
+  if (!validation.allowed) {
+    return NextResponse.json({ message: validation.message }, { status: estado ? 403 : 400 });
   }
 
-  if (estado === 'cerrado') {
-    if (user.role !== 'po') return NextResponse.json({ message: 'Solo PO puede cerrar' }, { status: 403 });
-    if (project.estado !== 'terminado') return NextResponse.json({ message: 'Debe estar terminado primero' }, { status: 403 });
-    const updated = await prisma.project.update({
-      where: { id: params.id },
-      data: { estado: 'cerrado', cerradoById: user.id, cerradoAt: new Date() },
-    });
-    await recordHistory(params.id, 'cerrado', user.id);
-    return NextResponse.json(updated);
-  }
+  const transitionData = getTransitionData(estado, user.id, motivo, validation.transition);
+  const updated = await prisma.project.update({
+    where: { id: params.id },
+    data: transitionData.data,
+  });
 
-  if (estado === 'cancelado') {
-    if (user.role !== 'po') return NextResponse.json({ message: 'Solo PO puede cancelar' }, { status: 403 });
-    if (project.estado !== 'terminado') return NextResponse.json({ message: 'Solo se puede cancelar desde terminado' }, { status: 403 });
-    const updated = await prisma.project.update({
-      where: { id: params.id },
-      data: { estado: 'cancelado', canceladoById: user.id, canceladoAt: new Date(), rechazoMotivo: motivo || null },
-    });
-    await recordHistory(params.id, 'cancelado', user.id, motivo);
-    return NextResponse.json(updated);
-  }
+  await prisma.stateHistory.create({
+    data: {
+      projectId: params.id,
+      estado: transitionData.historyEntry,
+      userId: user.id,
+      motivo: motivo || null,
+    },
+  });
 
-  if (estado === 'en_progreso') {
-    // PO rejects from terminado (with rationale)
-    if (user.role === 'po' && project.estado === 'terminado') {
-      const updated = await prisma.project.update({
-        where: { id: params.id },
-        data: { estado: 'en_progreso', terminadoById: null, terminadoAt: null, rechazoMotivo: motivo || null },
-      });
-      await recordHistory(params.id, 'rechazado', user.id, motivo);
-      return NextResponse.json(updated);
-    }
-    // Admin reopens from cancelado or cerrado
-    if (user.role === 'admin' && (project.estado === 'cancelado' || project.estado === 'cerrado')) {
-      const updated = await prisma.project.update({
-        where: { id: params.id },
-        data: {
-          estado: 'en_progreso',
-          terminadoById: null, terminadoAt: null,
-          cerradoById: null, cerradoAt: null,
-          canceladoById: null, canceladoAt: null,
-          rechazoMotivo: null,
-        },
-      });
-      await recordHistory(params.id, 'reabierto', user.id, motivo);
-      return NextResponse.json(updated);
-    }
-    return NextResponse.json({ message: 'Sin permisos para esta acción' }, { status: 403 });
-  }
-
-  return NextResponse.json({ message: 'Estado inválido' }, { status: 400 });
+  return NextResponse.json(updated);
 }

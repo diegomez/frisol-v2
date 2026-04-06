@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { canEditProject } from '@/lib/project-permissions';
+import { sanitizeCausaFields } from '@/lib/root-cause';
 
 async function checkProject(id: string, userId: string) {
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) return { error: NextResponse.json({ message: 'No encontrado' }, { status: 404 }) };
-  if (project.estado !== 'en_progreso') return { error: NextResponse.json({ message: 'No editable' }, { status: 403 }) };
-  if (project.csmId !== userId) {
+  if (!canEditProject({ id: userId, role: '' }, project)) {
+    // Need actual role — fetch user
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (user?.role !== 'po') return { error: NextResponse.json({ message: 'Sin acceso' }, { status: 403 }) };
+    if (!user || !canEditProject({ id: userId, role: user.role }, project)) {
+      return { error: NextResponse.json({ message: 'Sin acceso' }, { status: 403 }) };
+    }
   }
   return { project };
-}
-
-function computeRootCause(body: any): string {
-  return (body.why5?.trim()) || (body.why4?.trim()) || body.why3 || '';
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -30,7 +30,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
   const { error } = await checkProject(params.id, user.id);
   if (error) return error;
   const body = await request.json();
-  const causa = await prisma.causa.create({ data: { projectId: params.id, ...body, rootCause: computeRootCause(body) } });
+  const causa = await prisma.causa.create({ data: { projectId: params.id, ...sanitizeCausaFields(body) } as any });
   return NextResponse.json(causa, { status: 201 });
 }
 
@@ -42,7 +42,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const body = await request.json();
   const existing = await prisma.causa.findUnique({ where: { id: params.causaId } });
   const merged = { ...existing, ...body };
-  const causa = await prisma.causa.update({ where: { id: params.causaId }, data: { ...body, rootCause: computeRootCause(merged) } });
+  const causa = await prisma.causa.update({ where: { id: params.causaId }, data: sanitizeCausaFields(merged) as any });
   return NextResponse.json(causa);
 }
 

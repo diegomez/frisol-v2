@@ -97,7 +97,7 @@ export default function CierrePage() {
             <dt className="text-on-surface-variant">CRM:</dt><dd>{project.crmId || '—'}</dd>
             <dt className="text-on-surface-variant">Tribu:</dt><dd>{project.tribe?.name || '—'}</dd>
             <dt className="text-on-surface-variant">Fecha:</dt><dd>{project.fechaInicio ? new Date(project.fechaInicio).toLocaleDateString('es-AR') : '—'}</dd>
-            <dt className="text-on-surface-variant">Importancia:</dt><dd>{project.importancia != null ? `${project.importancia}/5` : '—'}</dd>
+            <dt className="text-on-surface-variant">Importancia:</dt><dd>{project.importancia != null ? `${project.importancia}` : '—'}</dd>
             <dt className="text-on-surface-variant">Pedido:</dt><dd className="col-span-2 whitespace-pre-wrap">{project.pedido || '—'}</dd>
           </dl>
         )},

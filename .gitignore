@@ -5,3 +5,10 @@ node_modules/
 uploads/
 *.tsbuildinfo
 .DS_Store
+
+# Playwright E2E
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+e2e/.auth/
